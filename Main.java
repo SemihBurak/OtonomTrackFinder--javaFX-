@@ -6,10 +6,10 @@ import java.util.Scanner;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import javafx.fxml.FXMLLoader;
 
-
-public class Main{
-    
+public class Main extends Application{
 
     public static void dfs(int[][] map, boolean[][] visited, int i, int j, int destX, int destY, List<int[]> path, List<List<int[]>> allPaths) {
         if (i < 0 || i >= 10 || j < 0 || j >= 10 || map[i][j] == 1 || visited[i][j]) {
@@ -52,7 +52,7 @@ public class Main{
         for (int[] cell : path) {
             System.out.print(Arrays.toString(cell) + " ");
             try {
-                Thread.sleep(1000); 
+                Thread.sleep(0); 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -84,7 +84,13 @@ public static void printShortestPath(List<List<int[]>> allPaths) {
     }
 }
 
+    @Override
+    public void start(Stage stage) throws Exception {
+        stage.show();
+    }
+
     public static void main(String[] args){
+        launch(args);
         Scanner sc = new Scanner(System.in);
         TrackGenerator generator = new TrackGenerator(10, 10);
         generator.printTrack();
