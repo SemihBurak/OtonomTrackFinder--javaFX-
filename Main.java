@@ -124,7 +124,7 @@ public static void printShortestPath(List<List<int[]>> allPaths) {
 
 
         List<List<int[]>> allPaths = findPaths(map, carY, carX, desY, desX);
-        printPaths(allPaths);
+        //printPaths(allPaths);
         printShortestPath(allPaths);
         sc.close();
     }

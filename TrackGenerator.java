@@ -23,7 +23,7 @@ public class TrackGenerator {
 
     private void generateTrack() {
     Random rand = new Random();
-    int onesCount = 25 + rand.nextInt(6); // Random number between 25 and 30
+    int onesCount = 35 + rand.nextInt(6); // Random number between 25 and 30
     List<Integer> positions = new ArrayList<>();
     
     // Initialize positions
