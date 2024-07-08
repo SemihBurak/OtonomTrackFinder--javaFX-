@@ -22,24 +22,31 @@ public class TrackGenerator {
     }
 
     private void generateTrack() {
-    Random rand = new Random();
-    int onesCount = 35 + rand.nextInt(6); // Random number between 25 and 30
-    List<Integer> positions = new ArrayList<>();
-    
-    // Initialize positions
-    for (int i = 0; i < rows * cols; i++) {
-        positions.add(i);
+        int totalCells = rows * cols;
+        int numObstructions = (int) (totalCells * 0.35);
+
+        List<Integer> cells = new ArrayList<>(totalCells);
+        
+        // Add 1s for obstructions
+        for (int i = 0; i < numObstructions; i++) {
+            cells.add(1);
+        }
+        
+        // Add 0s for clear paths
+        for (int i = numObstructions; i < totalCells; i++) {
+            cells.add(0);
+        }
+        
+        // Shuffle the list to randomly distribute 0s and 1s
+        Collections.shuffle(cells, new Random());
+
+        // Populate the track array with the shuffled list
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                track[i][j] = cells.remove(0);
+            }
+        }
     }
-    
-    // Shuffle positions
-    Collections.shuffle(positions);
-    
-    // Set onesCount positions to 1
-    for (int i = 0; i < onesCount; i++) {
-        int pos = positions.get(i);
-        track[pos / cols][pos % cols] = 1;
-    }
-}
 
     public int[][] getTrack() {
         return track;

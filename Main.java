@@ -5,7 +5,14 @@ import java.util.Scanner;
 //import same javafx 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 
@@ -21,18 +28,18 @@ public class Main extends Application{
 
         if (i == destX && j == destY) {
             allPaths.add(new ArrayList<>(path));
-            path.remove(path.size() - 1); // Remove destination after adding path to avoid duplicates
+            path.remove(path.size() - 1); // Remove destination cell before backtracking 
             return;
         } 
 
         visited[i][j] = true;
-        dfs(map, visited, i - 1, j, destX, destY, path, allPaths); // up
-        dfs(map, visited, i + 1, j, destX, destY, path, allPaths); // down
+        dfs(map, visited, i - 1, j, destX, destY, path, allPaths); // down
+        dfs(map, visited, i + 1, j, destX, destY, path, allPaths); // up
         dfs(map, visited, i, j - 1, destX, destY, path, allPaths); // left
         dfs(map, visited, i, j + 1, destX, destY, path, allPaths); // right
-        visited[i][j] = false;
+        visited[i][j] = false; // unmark the cell as visited that other paths can use it
 
-        path.remove(path.size() - 1); // Remove the current cell before backtracking
+        path.remove(path.size() - 1); // Remove the current cell because all paths from it have been explored
     }
 
     public static List<List<int[]>> findPaths(int[][] map, int startX, int startY, int destX, int destY) {
@@ -44,13 +51,11 @@ public class Main extends Application{
     }
 
     public static void printPaths(List<List<int[]>> allPaths) {
-
     System.out.println("\nAll paths: ");
     for (List<int[]> path : allPaths) {
-        // Calculate the time for the path
         int time = path.size();
         for (int[] cell : path) {
-            System.out.print(Arrays.toString(cell) + " ");
+            System.out.print("[" + cell[1] + ", " + cell[0] + "] ");
             try {
                 Thread.sleep(0); 
             } catch (InterruptedException e) {
@@ -61,6 +66,8 @@ public class Main extends Application{
         System.out.println("Time: " + time + " seconds");
     }
 }
+
+
 public static void printShortestPath(List<List<int[]>> allPaths) {
     int shortestTime = Integer.MAX_VALUE;
     List<int[]> shortestPath = null;
@@ -76,7 +83,7 @@ public static void printShortestPath(List<List<int[]>> allPaths) {
     if (shortestPath != null) {
         System.out.println("\nShortest path: ");
         for (int[] cell : shortestPath) {
-            System.out.print(Arrays.toString(cell) + " ");
+            System.out.print("[" + cell[1] + ", " + cell[0] + "] ");
         }
         System.out.println("Time: " + shortestTime + " seconds");
     } else {
@@ -84,48 +91,76 @@ public static void printShortestPath(List<List<int[]>> allPaths) {
     }
 }
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        stage.show();
+    
+    
+  @Override
+public void start(Stage stage) {
+    TrackGenerator generator = new TrackGenerator(10, 10);
+    generator.printTrack();
+    int[][] map = generator.getTrack();
+
+    // Create input fields and button
+    TextField startXField = new TextField();
+    TextField startYField = new TextField();
+    TextField destXField = new TextField();
+    TextField destYField = new TextField();
+    Button startButton = new Button("Start");
+
+    GridPane grid = new GridPane();
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            Rectangle rectangle = new Rectangle();
+            rectangle.widthProperty().bind(grid.widthProperty().divide(10.2));
+            rectangle.heightProperty().bind(grid.heightProperty().divide(10.2));
+            rectangle.setStroke(Color.BLACK);
+            if (map[i][j] == 1) {
+                rectangle.setFill(Color.DARKRED); // Obstacle
+            } else {
+                rectangle.setFill(Color.WHITE); // Empty cell
+            }
+            grid.add(rectangle, j, i);
+        }
     }
+
+    GridPane.setHgrow(grid, Priority.ALWAYS);
+    GridPane.setVgrow(grid, Priority.ALWAYS);
+
+    startButton.setOnAction(event -> {
+        int startX = Integer.parseInt(startXField.getText());
+        int startY = Integer.parseInt(startYField.getText());
+        int destX = Integer.parseInt(destXField.getText());
+        int destY = Integer.parseInt(destYField.getText());
+
+        map[startY][startX] = -1;
+        map[destY][destX] = 2;
+
+        // Update the grid
+        for (javafx.scene.Node node : grid.getChildren()) {
+            Rectangle rectangle = (Rectangle) node;
+            int x = GridPane.getColumnIndex(rectangle);
+            int y = GridPane.getRowIndex(rectangle);
+            if (map[y][x] == -1) {
+                rectangle.setFill(Color.GREEN); // Car
+            } else if (map[y][x] == 2) {
+                rectangle.setFill(Color.BLUE); // Destination
+            }
+        }
+        generator.printTrack();
+        List<List<int[]>> allPaths = findPaths(map, startY, startX, destY, destX);
+        printPaths(allPaths);
+        System.out.println("Number of total paths:"+allPaths.size());
+        printShortestPath(allPaths);
+    });
+
+    VBox inputBox = new VBox(startXField, startYField, destXField, destYField, startButton);
+
+    VBox root = new VBox(inputBox, grid);
+    Scene scene = new Scene(root, 650, 650);
+    stage.setScene(scene);
+    stage.show();
+}
 
     public static void main(String[] args){
         launch(args);
-        Scanner sc = new Scanner(System.in);
-        TrackGenerator generator = new TrackGenerator(10, 10);
-        generator.printTrack();
-        int[][] map = generator.getTrack();
-
-       
-        System.out.println("Enter the car coordinates on map (type row first then column): ");
-        int carY = sc.nextInt();
-        int carX = sc.nextInt();
-        
-        while (carY < 0 || carY >= 10 || carX < 0 || carX >= 10 || map[carY][carX] == 1) {
-            System.out.println("The entered coordinates are either an obstacle or out of bounds. Please enter different coordinates: ");
-            carY = sc.nextInt();
-            carX = sc.nextInt();
-        }
-
-        map[carY][carX] = -1;
-
-        System.out.println("Enter the destination coordinates on map (type row first then column): ");
-        int desY = sc.nextInt();
-        int desX = sc.nextInt();
-
-        while (desY<0 || desY >=10 || desX<0 || desX>=10 || map[desY][desX] == 1){
-            System.out.println("The entered coordinates are either an obstacle or out of bounds. Please enter different coordinates: ");
-            desY = sc.nextInt();
-            desX = sc.nextInt();
-        }
-
-        map[desY][desX] = 2;
-        generator.printTrack();
-
-
-        List<List<int[]>> allPaths = findPaths(map, carY, carX, desY, desX);
-        //printPaths(allPaths);
-        printShortestPath(allPaths);
-        sc.close();
     }
 }
