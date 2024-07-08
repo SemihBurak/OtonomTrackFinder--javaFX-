@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 //import same javafx 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -94,20 +96,19 @@ public static void printShortestPath(List<List<int[]>> allPaths) {
 
     
     
-  @Override
+ @Override
 public void start(Stage stage) {
     TrackGenerator generator = new TrackGenerator(10, 10);
     generator.printTrack();
     int[][] map = generator.getTrack();
 
-    // Create input fields and button
-    TextField startXField = new TextField();
-    TextField startYField = new TextField();
-    TextField destXField = new TextField();
-    TextField destYField = new TextField();
     Button startButton = new Button("Start");
 
     GridPane grid = new GridPane();
+    int[] start = new int[2];
+    int[] dest = new int[2];
+    AtomicBoolean isSettingStart = new AtomicBoolean(true);
+
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
             Rectangle rectangle = new Rectangle();
@@ -119,6 +120,27 @@ public void start(Stage stage) {
             } else {
                 rectangle.setFill(Color.WHITE); // Empty cell
             }
+            rectangle.setOnMouseClicked(event -> {
+                int x = GridPane.getColumnIndex(rectangle);
+                int y = GridPane.getRowIndex(rectangle);
+                if (map[y][x] == 1) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error Dialog");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Cannot place starting or ending position on an obstacle.");
+                    alert.showAndWait();
+                } else if (isSettingStart.get()) {
+                    rectangle.setFill(Color.GREEN); // Car
+                    start[0] = y;
+                    start[1] = x;
+                    isSettingStart.set(false);
+                } else {
+                    rectangle.setFill(Color.BLUE); // Destination
+                    dest[0] = y;
+                    dest[1] = x;
+                    isSettingStart.set(true);
+                }
+            });
             grid.add(rectangle, j, i);
         }
     }
@@ -127,47 +149,18 @@ public void start(Stage stage) {
     GridPane.setVgrow(grid, Priority.ALWAYS);
 
     startButton.setOnAction(event -> {
-    int startX = Integer.parseInt(startXField.getText());
-    int startY = Integer.parseInt(startYField.getText());
-    int destX = Integer.parseInt(destXField.getText());
-    int destY = Integer.parseInt(destYField.getText());
+        map[start[0]][start[1]] = -1;
+        map[dest[0]][dest[1]] = 2;
 
-    // Check if starting or ending position is on an obstacle
-    if (map[startY][startX] == 1 || map[destY][destX] == 1) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error Dialog");
-        alert.setHeaderText(null);
-        alert.setContentText("Cannot place starting or ending position on an obstacle.");
-        alert.showAndWait();
-        return;
-    }
-
-    map[startY][startX] = -1;
-    map[destY][destX] = 2;
-
-    // Update the grid
-    for (javafx.scene.Node node : grid.getChildren()) {
-        Rectangle rectangle = (Rectangle) node;
-        int x = GridPane.getColumnIndex(rectangle);
-        int y = GridPane.getRowIndex(rectangle);
-        if (map[y][x] == -1) {
-            rectangle.setFill(Color.GREEN); // Car
-        } else if (map[y][x] == 2) {
-            rectangle.setFill(Color.BLUE); // Destination
-        }
-    }
-
-    generator.printTrack();
-    List<List<int[]>> allPaths = findPaths(map, startY, startX, destY, destX);
-    printPaths(allPaths);
-    System.out.println("Number of total paths:"+allPaths.size());
-    printShortestPath(allPaths);
+        generator.printTrack();
+        List<List<int[]>> allPaths = findPaths(map, start[0], start[1], dest[0], dest[1]);
+        printPaths(allPaths);
+        System.out.println("Number of total paths:"+allPaths.size());
+        printShortestPath(allPaths);
     });
 
-    VBox inputBox = new VBox(startXField, startYField, destXField, destYField, startButton);
-
-    VBox root = new VBox(inputBox, grid);
-    Scene scene = new Scene(root, 660, 660);
+    VBox root = new VBox(startButton, grid);
+    Scene scene = new Scene(root, 540, 540);
     stage.setScene(scene);
     stage.show();
 }
