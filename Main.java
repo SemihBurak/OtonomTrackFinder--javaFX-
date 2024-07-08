@@ -5,6 +5,7 @@ import java.util.Scanner;
 //import same javafx 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -126,36 +127,47 @@ public void start(Stage stage) {
     GridPane.setVgrow(grid, Priority.ALWAYS);
 
     startButton.setOnAction(event -> {
-        int startX = Integer.parseInt(startXField.getText());
-        int startY = Integer.parseInt(startYField.getText());
-        int destX = Integer.parseInt(destXField.getText());
-        int destY = Integer.parseInt(destYField.getText());
+    int startX = Integer.parseInt(startXField.getText());
+    int startY = Integer.parseInt(startYField.getText());
+    int destX = Integer.parseInt(destXField.getText());
+    int destY = Integer.parseInt(destYField.getText());
 
-        map[startY][startX] = -1;
-        map[destY][destX] = 2;
+    // Check if starting or ending position is on an obstacle
+    if (map[startY][startX] == 1 || map[destY][destX] == 1) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error Dialog");
+        alert.setHeaderText(null);
+        alert.setContentText("Cannot place starting or ending position on an obstacle.");
+        alert.showAndWait();
+        return;
+    }
 
-        // Update the grid
-        for (javafx.scene.Node node : grid.getChildren()) {
-            Rectangle rectangle = (Rectangle) node;
-            int x = GridPane.getColumnIndex(rectangle);
-            int y = GridPane.getRowIndex(rectangle);
-            if (map[y][x] == -1) {
-                rectangle.setFill(Color.GREEN); // Car
-            } else if (map[y][x] == 2) {
-                rectangle.setFill(Color.BLUE); // Destination
-            }
+    map[startY][startX] = -1;
+    map[destY][destX] = 2;
+
+    // Update the grid
+    for (javafx.scene.Node node : grid.getChildren()) {
+        Rectangle rectangle = (Rectangle) node;
+        int x = GridPane.getColumnIndex(rectangle);
+        int y = GridPane.getRowIndex(rectangle);
+        if (map[y][x] == -1) {
+            rectangle.setFill(Color.GREEN); // Car
+        } else if (map[y][x] == 2) {
+            rectangle.setFill(Color.BLUE); // Destination
         }
-        generator.printTrack();
-        List<List<int[]>> allPaths = findPaths(map, startY, startX, destY, destX);
-        printPaths(allPaths);
-        System.out.println("Number of total paths:"+allPaths.size());
-        printShortestPath(allPaths);
+    }
+
+    generator.printTrack();
+    List<List<int[]>> allPaths = findPaths(map, startY, startX, destY, destX);
+    printPaths(allPaths);
+    System.out.println("Number of total paths:"+allPaths.size());
+    printShortestPath(allPaths);
     });
 
     VBox inputBox = new VBox(startXField, startYField, destXField, destYField, startButton);
 
     VBox root = new VBox(inputBox, grid);
-    Scene scene = new Scene(root, 650, 650);
+    Scene scene = new Scene(root, 660, 660);
     stage.setScene(scene);
     stage.show();
 }
