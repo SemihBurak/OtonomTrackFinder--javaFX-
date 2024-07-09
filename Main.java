@@ -18,6 +18,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 
 public class Main extends Application{
 
@@ -71,27 +74,41 @@ public class Main extends Application{
 }
 
 
-public static void printShortestPath(List<List<int[]>> allPaths) {
-    int shortestTime = Integer.MAX_VALUE;
-    List<int[]> shortestPath = null;
-
+private void printShortestPath(List<List<int[]>> allPaths, GridPane grid, int[][] map) {
+    List<int[]> shortestPath = allPaths.get(0);
     for (List<int[]> path : allPaths) {
-        int time = path.size();
-        if (time < shortestTime) {
-            shortestTime = time;
+        if (path.size() < shortestPath.size()) {
             shortestPath = path;
         }
     }
 
-    if (shortestPath != null) {
-        System.out.println("\nShortest path: ");
-        for (int[] cell : shortestPath) {
-            System.out.print("[" + cell[1] + ", " + cell[0] + "] ");
-        }
-        System.out.println("Time: " + shortestTime + " seconds");
-    } else {
-        System.out.println("No path found");
+    Timeline timeline = new Timeline();
+    for (int i = 1; i < shortestPath.size() - 1; i++) { // Skip first and last point
+        int[] point = shortestPath.get(i);
+        KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 1000), event -> { // 100 milliseconds per cell
+            for (javafx.scene.Node node : grid.getChildren()) {
+                Rectangle rectangle = (Rectangle) node;
+                int x = GridPane.getColumnIndex(rectangle);
+                int y = GridPane.getRowIndex(rectangle);
+                if (y == point[0] && x == point[1]) {
+                    rectangle.setFill(Color.YELLOW);
+                }
+            }
+        });
+        timeline.getKeyFrames().add(keyFrame);
     }
+    timeline.play();
+
+    System.out.println("\nShortest path:");
+    for (int[] point : shortestPath) {
+        System.out.print("[" + point[1] + ", " + point[0] + "] ");
+        try {
+            Thread.sleep(0); 
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    System.out.println(" Time: " + (shortestPath.size()) + " seconds");
 }
 
     
@@ -155,8 +172,8 @@ public void start(Stage stage) {
         generator.printTrack();
         List<List<int[]>> allPaths = findPaths(map, start[0], start[1], dest[0], dest[1]);
         printPaths(allPaths);
-        System.out.println("Number of total paths:"+allPaths.size());
-        printShortestPath(allPaths);
+        System.out.println("\nNumber of total paths:"+allPaths.size());
+        printShortestPath(allPaths, grid, map);
     });
 
     VBox root = new VBox(startButton, grid);
