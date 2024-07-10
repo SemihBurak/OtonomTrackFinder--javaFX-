@@ -1,6 +1,4 @@
-import java.util.*;
-
-public  class Node implements Comparable<Node> {
+public class Node implements Comparable<Node> {
     int x, y;
     double g, h;
     Node parent;
