@@ -1,7 +1,6 @@
-
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -17,18 +16,21 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main extends Application {
 
     private List<Rectangle> shortestPathRectangles = new ArrayList<>();
+    private List<Vehicle> vehicles = new ArrayList<>();
+    private List<int[]> starts = new ArrayList<>();
+    private List<int[]> destinations = new ArrayList<>();
+    private int currentVehicleIndex = 0;
 
-    private void printShortestPath(List<int[]> path, GridPane grid, ImageView carImageView) {
+    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex) {
         if (path.isEmpty()) {
             System.out.println("\nNo paths found.");
             return;
         }
-    
+
         Timeline timeline = new Timeline();
         for (int i = 1; i < path.size(); i++) { // Skip last point
             int[] point = path.get(i);
@@ -36,25 +38,24 @@ public class Main extends Application {
                 Rectangle pathRectangle = new Rectangle();
                 pathRectangle.setWidth(63);
                 pathRectangle.setHeight(63);
-                pathRectangle.setFill(Color.rgb(255, 255, 0, 0.5)); // Semi-transparent yellow
+                pathRectangle.setFill(vehicleIndex == 1 ? Color.RED : Color.rgb(255, 255, 0, 0.5)); 
                 pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
                 grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
-                grid.getChildren().remove(carImageView);
-                grid.add(carImageView, point[1], point[0]); // Move the car image
+                vehicle.move(grid, point); // Move the vehicle image
 
                 shortestPathRectangles.add(pathRectangle); // Add the path rectangle to the list
             });
             timeline.getKeyFrames().add(keyFrame);
         }
         timeline.play();
-    
+
         System.out.println("\nShortest path:");
         for (int[] point : path) {
             System.out.print("[" + point[1] + ", " + point[0] + "] ");
         }
         System.out.println(" Time: " + (path.size()) + " seconds");
     }
-    
+
     @Override
     public void start(Stage stage) {
         TrackGenerator generator = new TrackGenerator(10, 10);
@@ -65,19 +66,21 @@ public class Main extends Application {
 
         GridPane grid = new GridPane();
         grid.setGridLinesVisible(true);
- 
-        int[] start = new int[2];
-        int[] dest = new int[2];
 
         AtomicBoolean isSettingStart = new AtomicBoolean(true);
 
         Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/obstacle.jpeg");
         Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/ground.png");
-        Image carImage = new Image("file:/Users/semihburakatilgan/Desktop/pngegg.png");
-        
-        ImageView carImageView = new ImageView(carImage);
-        carImageView.setFitWidth(50); // Adjust the size as needed
-        carImageView.setFitHeight(50); // Adjust the size as needed
+
+        Vehicle car1 = new Car("file:/Users/semihburakatilgan/Desktop/pngegg.png");
+        Vehicle car2 = new Car("file:/Users/semihburakatilgan/Desktop/car_red.png");
+        vehicles.add(car1);
+        vehicles.add(car2);
+
+        for (int i = 0; i < vehicles.size(); i++) {
+            starts.add(new int[2]);
+            destinations.add(new int[2]);
+        }
 
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
@@ -94,7 +97,7 @@ public class Main extends Application {
                         alert.setContentText("You cannot set the start or destination on an obstacle.");
                         alert.showAndWait();
                     });
-                    
+
                 } else {
                     ImageView groundImageView = new ImageView(groundImage);
                     groundImageView.setFitWidth(64); // Adjust the size as needed
@@ -104,38 +107,37 @@ public class Main extends Application {
                     groundImageView.setOnMouseClicked(event -> {
                         int x = GridPane.getColumnIndex(groundImageView);
                         int y = GridPane.getRowIndex(groundImageView);
-                    
+
                         if (isSettingStart.get()) {
-                            
+
                             // Clear previous start and destination points
-                                grid.getChildren().removeIf(node -> {
-                                    Integer columnIndex = GridPane.getColumnIndex(node);
-                                    Integer rowIndex = GridPane.getRowIndex(node);
-                                    return columnIndex != null && rowIndex != null && (
-                                        (columnIndex == start[1] && rowIndex == start[0]) ||
-                                        (columnIndex == dest[1] && rowIndex == dest[0])
-                                    ) && node instanceof Rectangle;
-                                });
-                    
-                                // Remove shortest path rectangles and
-                                for (Rectangle rectangle : shortestPathRectangles) {
-                                    grid.getChildren().remove(rectangle);
-                                }
-                                shortestPathRectangles.clear();
-                            
-                    
+                            grid.getChildren().removeIf(node -> {
+                                Integer columnIndex = GridPane.getColumnIndex(node);
+                                Integer rowIndex = GridPane.getRowIndex(node);
+                                return columnIndex != null && rowIndex != null && (
+                                    (columnIndex == starts.get(currentVehicleIndex)[1] && rowIndex == starts.get(currentVehicleIndex)[0]) ||
+                                    (columnIndex == destinations.get(currentVehicleIndex)[1] && rowIndex == destinations.get(currentVehicleIndex)[0])
+                                ) && node instanceof Rectangle;
+                            });
+
+                            // Remove shortest path rectangles
+                            for (Rectangle rectangle : shortestPathRectangles) {
+                                grid.getChildren().remove(rectangle);
+                            }
+                            shortestPathRectangles.clear();
+
                             // Set new start point
                             Rectangle startRectangle = new Rectangle();
                             startRectangle.setWidth(64); // Set to a fixed value
                             startRectangle.setHeight(64); // Set to a fixed value
                             startRectangle.setFill(Color.GREEN); // Start color
                             grid.add(startRectangle, x, y); // Add the start rectangle
-                    
-                            grid.getChildren().remove(carImageView);
-                            grid.add(carImageView, x, y); // Add the car image
-                            start[0] = y;
-                            start[1] = x;
-                            
+
+                            grid.getChildren().remove(vehicles.get(currentVehicleIndex).getVehicleImageView());
+                            grid.add(vehicles.get(currentVehicleIndex).getVehicleImageView(), x, y); // Add the car image
+                            starts.get(currentVehicleIndex)[0] = y;
+                            starts.get(currentVehicleIndex)[1] = x;
+
                             isSettingStart.set(false);
                         } else {
                             // Set new destination point
@@ -144,10 +146,16 @@ public class Main extends Application {
                             destRectangle.setHeight(64); // Set to a fixed value
                             destRectangle.setFill(Color.BLUE); // Destination color
                             grid.add(destRectangle, x, y); // Add the destination rectangle
-                    
-                            dest[0] = y;
-                            dest[1] = x;
+
+                            destinations.get(currentVehicleIndex)[0] = y;
+                            destinations.get(currentVehicleIndex)[1] = x;
                             isSettingStart.set(true);
+
+                            currentVehicleIndex++;
+                            
+                            if (currentVehicleIndex >= vehicles.size()) {
+                                currentVehicleIndex = 0; // Reset index
+                            }
                         }
                     });
                 }
@@ -155,20 +163,23 @@ public class Main extends Application {
         }
 
         startButton.setOnAction(event -> {
-            map[start[0]][start[1]] = -1;
-            map[dest[0]][dest[1]] = 2;
-        
-            generator.printTrack();
+            for (int i = 0; i < vehicles.size(); i++) {
+                int[] start = starts.get(i);
+                int[] dest = destinations.get(i);
 
-            List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1]);
-            printShortestPath(path, grid, carImageView);
-        
-            // Reset the start and destination cells to be empty again
-            map[start[0]][start[1]] = 0;
-            map[dest[0]][dest[1]] = 0;
-        
+                map[start[0]][start[1]] = -1;
+                map[dest[0]][dest[1]] = 2;
+
+                generator.printTrack();
+
+                List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1]);
+                printShortestPath(path, grid, vehicles.get(i),i);
+
+                // Reset the start and destination cells to be empty again
+                map[start[0]][start[1]] = 0;
+                map[dest[0]][dest[1]] = 0;
+            }
         });
-        
 
         VBox root = new VBox(startButton, grid);
         VBox.setVgrow(grid, Priority.ALWAYS);
