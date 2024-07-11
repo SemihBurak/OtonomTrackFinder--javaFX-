@@ -1,5 +1,6 @@
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -29,13 +30,13 @@ public class Main extends Application {
         }
     
         Timeline timeline = new Timeline();
-        for (int i = 1; i < path.size(); i++) { // Skip first and last point
+        for (int i = 1; i < path.size(); i++) { // Skip last point
             int[] point = path.get(i);
             KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 100), event -> { // 100 milliseconds per cell
                 Rectangle pathRectangle = new Rectangle();
-                pathRectangle.setWidth(64);
-                pathRectangle.setHeight(64);
-                pathRectangle.setFill(Color.YELLOW); // Path color
+                pathRectangle.setWidth(63);
+                pathRectangle.setHeight(63);
+                pathRectangle.setFill(Color.rgb(255, 255, 0, 0.5)); // Semi-transparent yellow
                 pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
                 grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
                 grid.getChildren().remove(carImageView);
@@ -98,7 +99,8 @@ public class Main extends Application {
                     ImageView groundImageView = new ImageView(groundImage);
                     groundImageView.setFitWidth(64); // Adjust the size as needed
                     groundImageView.setFitHeight(64); // Adjust the size as needed
-                    
+                    grid.add(groundImageView, j, i);
+
                     groundImageView.setOnMouseClicked(event -> {
                         int x = GridPane.getColumnIndex(groundImageView);
                         int y = GridPane.getRowIndex(groundImageView);
@@ -106,8 +108,6 @@ public class Main extends Application {
                         if (isSettingStart.get()) {
                             
                             // Clear previous start and destination points
-                            if (start[0] != 0 || start[1] != 0 || dest[0] != 0 || dest[1] != 0) {
-                                
                                 grid.getChildren().removeIf(node -> {
                                     Integer columnIndex = GridPane.getColumnIndex(node);
                                     Integer rowIndex = GridPane.getRowIndex(node);
@@ -117,16 +117,12 @@ public class Main extends Application {
                                     ) && node instanceof Rectangle;
                                 });
                     
-                                // Reset map values to ensure cells are clickable again
-                                map[start[0]][start[1]] = 0;
-                                map[dest[0]][dest[1]] = 0;
-                    
                                 // Remove shortest path rectangles and
                                 for (Rectangle rectangle : shortestPathRectangles) {
                                     grid.getChildren().remove(rectangle);
                                 }
                                 shortestPathRectangles.clear();
-                            }
+                            
                     
                             // Set new start point
                             Rectangle startRectangle = new Rectangle();
@@ -139,6 +135,7 @@ public class Main extends Application {
                             grid.add(carImageView, x, y); // Add the car image
                             start[0] = y;
                             start[1] = x;
+                            
                             isSettingStart.set(false);
                         } else {
                             // Set new destination point
@@ -153,8 +150,6 @@ public class Main extends Application {
                             isSettingStart.set(true);
                         }
                     });
-                    
-                    grid.add(groundImageView, j, i);
                 }
             }
         }
@@ -172,11 +167,6 @@ public class Main extends Application {
             map[start[0]][start[1]] = 0;
             map[dest[0]][dest[1]] = 0;
         
-            // Clear shortest path rectangles
-            for (Rectangle rectangle : shortestPathRectangles) {
-                grid.getChildren().remove(rectangle);
-            }
-            shortestPathRectangles.clear();
         });
         
 
