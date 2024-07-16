@@ -1,120 +1,206 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
-public class Main{
-    
+public class Main extends Application {
 
-    public static void dfs(int[][] map, boolean[][] visited, int i, int j, int destX, int destY, List<int[]> path, List<List<int[]>> allPaths) {
-        if (i < 0 || i >= 10 || j < 0 || j >= 10 || map[i][j] == 1 || visited[i][j]) {
+    private List<Rectangle> shortestPathRectangles = new ArrayList<>();
+    private List<Vehicle> vehicles = new ArrayList<>();
+    private List<int[]> starts = new ArrayList<>();
+    private List<int[]> destinations = new ArrayList<>();
+    private int currentVehicleIndex = 0;
+
+    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex) {
+        if (path.isEmpty()) {
+            System.out.println("\nNo paths found.");
             return;
         }
 
-        int[] coordinates = new int[]{i,j};
-        path.add(coordinates);
+        Timeline timeline = new Timeline();
+        for (int i = 1; i < path.size(); i++) { // Skip last point
+            int[] point = path.get(i);
+            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 300), event -> { // 100 milliseconds per cell
+                // Check for potential collision
+                boolean collision = false;
+                for (Vehicle v : vehicles) {
+                    if (v != vehicle && v.isAtPosition(point[0], point[1])) {
+                        collision = true;
+                        break;
+                    }
+                }
 
-        if (i == destX && j == destY) {
-            allPaths.add(new ArrayList<>(path));
-            path.remove(path.size() - 1); // Remove destination after adding path to avoid duplicates
-            return;
-        } 
+                if (!collision) {
+                    Rectangle pathRectangle = new Rectangle();
+                    pathRectangle.setWidth(63);
+                    pathRectangle.setHeight(63);
+                    pathRectangle.setFill(vehicleIndex == 1 ? Color.RED : Color.rgb(255, 255, 0, 0.5)); 
+                    pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
+                    grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
+                    vehicle.move(grid, point); // Move the vehicle image
 
-        visited[i][j] = true;
-        dfs(map, visited, i - 1, j, destX, destY, path, allPaths); // up
-        dfs(map, visited, i + 1, j, destX, destY, path, allPaths); // down
-        dfs(map, visited, i, j - 1, destX, destY, path, allPaths); // left
-        dfs(map, visited, i, j + 1, destX, destY, path, allPaths); // right
-        visited[i][j] = false;
-
-        path.remove(path.size() - 1); // Remove the current cell before backtracking
-    }
-
-    public static List<List<int[]>> findPaths(int[][] map, int startX, int startY, int destX, int destY) {
-        List<List<int[]>> allPaths = new ArrayList<>();
-        List<int[]> path = new ArrayList<>();
-        boolean[][] visited = new boolean[10][10];
-        dfs(map, visited, startX, startY, destX, destY, path, allPaths);
-        return allPaths;
-    }
-
-    public static void printPaths(List<List<int[]>> allPaths) {
-
-    System.out.println("\nAll paths: ");
-    for (List<int[]> path : allPaths) {
-        // Calculate the time for the path
-        int time = path.size();
-        for (int[] cell : path) {
-            System.out.print(Arrays.toString(cell) + " ");
-            try {
-                Thread.sleep(1000); 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                    shortestPathRectangles.add(pathRectangle); // Add the path rectangle to the list
+                }
+            });
+            timeline.getKeyFrames().add(keyFrame);
         }
+        timeline.play();
 
-        System.out.println("Time: " + time + " seconds");
-    }
-}
-public static void printShortestPath(List<List<int[]>> allPaths) {
-    int shortestTime = Integer.MAX_VALUE;
-    List<int[]> shortestPath = null;
-
-    for (List<int[]> path : allPaths) {
-        int time = path.size();
-        if (time < shortestTime) {
-            shortestTime = time;
-            shortestPath = path;
+        System.out.println("\nShortest path:");
+        for (int[] point : path) {
+            System.out.print("[" + point[1] + ", " + point[0] + "] ");
         }
+        System.out.println(" Time: " + (path.size()) + " seconds");
     }
 
-    if (shortestPath != null) {
-        System.out.println("\nShortest path: ");
-        for (int[] cell : shortestPath) {
-            System.out.print(Arrays.toString(cell) + " ");
-        }
-        System.out.println("Time: " + shortestTime + " seconds");
-    } else {
-        System.out.println("No path found");
-    }
-}
-
-    public static void main(String[] args){
-        Scanner sc = new Scanner(System.in);
+    @Override
+    public void start(Stage stage) {
         TrackGenerator generator = new TrackGenerator(10, 10);
         generator.printTrack();
         int[][] map = generator.getTrack();
 
-       
-        System.out.println("Enter the car coordinates on map (type row first then column): ");
-        int carY = sc.nextInt();
-        int carX = sc.nextInt();
-        
-        while (carY < 0 || carY >= 10 || carX < 0 || carX >= 10 || map[carY][carX] == 1) {
-            System.out.println("The entered coordinates are either an obstacle or out of bounds. Please enter different coordinates: ");
-            carY = sc.nextInt();
-            carX = sc.nextInt();
+        Button startButton = new Button("Start");
+
+        GridPane grid = new GridPane();
+        grid.setGridLinesVisible(true);
+
+        AtomicBoolean isSettingStart = new AtomicBoolean(true);
+
+        Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
+        Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
+
+        Vehicle car1 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/pngegg.png");
+        Vehicle car2 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/car_red.png");
+        vehicles.add(car1);
+        vehicles.add(car2);
+
+        for (int i = 0; i < vehicles.size(); i++) {
+            starts.add(new int[2]);
+            destinations.add(new int[2]);
         }
 
-        map[carY][carX] = -1;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (map[i][j] == 1) {
+                    ImageView obstacleImageView = new ImageView(obstacleImage);
+                    obstacleImageView.setFitWidth(64); // Adjust the size as needed
+                    obstacleImageView.setFitHeight(64); // Adjust the size as needed
+                    grid.add(obstacleImageView, j, i);
 
-        System.out.println("Enter the destination coordinates on map (type row first then column): ");
-        int desY = sc.nextInt();
-        int desX = sc.nextInt();
+                    obstacleImageView.setOnMouseClicked(event -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText(null);
+                        alert.setContentText("You cannot set the start or destination on an obstacle.");
+                        alert.showAndWait();
+                    });
 
-        while (desY<0 || desY >=10 || desX<0 || desX>=10 || map[desY][desX] == 1){
-            System.out.println("The entered coordinates are either an obstacle or out of bounds. Please enter different coordinates: ");
-            desY = sc.nextInt();
-            desX = sc.nextInt();
+                } else {
+                    ImageView groundImageView = new ImageView(groundImage);
+                    groundImageView.setFitWidth(64); // Adjust the size as needed
+                    groundImageView.setFitHeight(64); // Adjust the size as needed
+                    grid.add(groundImageView, j, i);
+
+                    groundImageView.setOnMouseClicked(event -> {
+                        int x = GridPane.getColumnIndex(groundImageView);
+                        int y = GridPane.getRowIndex(groundImageView);
+
+                        if (isSettingStart.get()) {
+
+                            // Clear previous start and destination points
+                            grid.getChildren().removeIf(node -> {
+                                Integer columnIndex = GridPane.getColumnIndex(node);
+                                Integer rowIndex = GridPane.getRowIndex(node);
+                                return columnIndex != null && rowIndex != null && (
+                                    (columnIndex == starts.get(currentVehicleIndex)[1] && rowIndex == starts.get(currentVehicleIndex)[0]) ||
+                                    (columnIndex == destinations.get(currentVehicleIndex)[1] && rowIndex == destinations.get(currentVehicleIndex)[0])
+                                ) && node instanceof Rectangle;
+                            });
+
+                            // Remove shortest path rectangles
+                            for (Rectangle rectangle : shortestPathRectangles) {
+                                grid.getChildren().remove(rectangle);
+                            }
+                            shortestPathRectangles.clear();
+
+                            // Set new start point
+                            Rectangle startRectangle = new Rectangle();
+                            startRectangle.setWidth(64); // Set to a fixed value
+                            startRectangle.setHeight(64); // Set to a fixed value
+                            startRectangle.setFill(Color.GREEN); // Start color
+                            grid.add(startRectangle, x, y); // Add the start rectangle
+
+                            grid.getChildren().remove(vehicles.get(currentVehicleIndex).getVehicleImageView());
+                            grid.add(vehicles.get(currentVehicleIndex).getVehicleImageView(), x, y); // Add the car image
+                            starts.get(currentVehicleIndex)[0] = y;
+                            starts.get(currentVehicleIndex)[1] = x;
+
+                            isSettingStart.set(false);
+                        } else {
+                            // Set new destination point
+                            Rectangle destRectangle = new Rectangle();
+                            destRectangle.setWidth(64); // Set to a fixed value
+                            destRectangle.setHeight(64); // Set to a fixed value
+                            destRectangle.setFill(Color.BLUE); // Destination color
+                            grid.add(destRectangle, x, y); // Add the destination rectangle
+
+                            destinations.get(currentVehicleIndex)[0] = y;
+                            destinations.get(currentVehicleIndex)[1] = x;
+                            isSettingStart.set(true);
+
+                            currentVehicleIndex++;
+                            
+                            if (currentVehicleIndex >= vehicles.size()) {
+                                currentVehicleIndex = 0; // Reset index
+                            }
+                        }
+                    });
+                }
+            }
         }
 
-        map[desY][desX] = 2;
-        generator.printTrack();
+        startButton.setOnAction(event -> {
+            for (int i = 0; i < vehicles.size(); i++) {
+                int[] start = starts.get(i);
+                int[] dest = destinations.get(i);
 
+                map[start[0]][start[1]] = -1;
+                map[dest[0]][dest[1]] = 2;
 
-        List<List<int[]>> allPaths = findPaths(map, carY, carX, desY, desX);
-        printPaths(allPaths);
-        printShortestPath(allPaths);
-        sc.close();
+                generator.printTrack();
+
+                List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1]);
+                printShortestPath(path, grid, vehicles.get(i),i);
+
+                // Reset the start and destination cells to be empty again
+                map[start[0]][start[1]] = 0;
+                map[dest[0]][dest[1]] = 0;
+            }
+        });
+
+        VBox root = new VBox(startButton, grid);
+        VBox.setVgrow(grid, Priority.ALWAYS);
+
+        Scene scene = new Scene(root, 640, 670);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }

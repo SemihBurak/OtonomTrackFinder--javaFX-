@@ -1,0 +1,15 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx-swt.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx.base.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx.controls.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx.fxml.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx.graphics.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx.media.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx.swing.jar",
+        "/Users/semihburakatilgan/Desktop/javafx-sdk-22.0.1/lib/javafx.web.jar",
+        "javafx-sdk-22.0.1/**/*.jar",
+        ".vscode/**/*.jar"
+    ]
+}
