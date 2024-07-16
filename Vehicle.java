@@ -17,4 +17,10 @@ public abstract class Vehicle {
     }
 
     public abstract void move(GridPane grid, int[] position);
-}
+
+    public boolean isAtPosition(int x, int y) {
+        Integer col = GridPane.getColumnIndex(vehicleImageView);
+        Integer row = GridPane.getRowIndex(vehicleImageView);
+        return col != null && row != null && col == y && row == x; }
+    
+    }

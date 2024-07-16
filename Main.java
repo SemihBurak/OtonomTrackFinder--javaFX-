@@ -34,16 +34,27 @@ public class Main extends Application {
         Timeline timeline = new Timeline();
         for (int i = 1; i < path.size(); i++) { // Skip last point
             int[] point = path.get(i);
-            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 100), event -> { // 100 milliseconds per cell
-                Rectangle pathRectangle = new Rectangle();
-                pathRectangle.setWidth(63);
-                pathRectangle.setHeight(63);
-                pathRectangle.setFill(vehicleIndex == 1 ? Color.RED : Color.rgb(255, 255, 0, 0.5)); 
-                pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
-                grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
-                vehicle.move(grid, point); // Move the vehicle image
+            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 300), event -> { // 100 milliseconds per cell
+                // Check for potential collision
+                boolean collision = false;
+                for (Vehicle v : vehicles) {
+                    if (v != vehicle && v.isAtPosition(point[0], point[1])) {
+                        collision = true;
+                        break;
+                    }
+                }
 
-                shortestPathRectangles.add(pathRectangle); // Add the path rectangle to the list
+                if (!collision) {
+                    Rectangle pathRectangle = new Rectangle();
+                    pathRectangle.setWidth(63);
+                    pathRectangle.setHeight(63);
+                    pathRectangle.setFill(vehicleIndex == 1 ? Color.RED : Color.rgb(255, 255, 0, 0.5)); 
+                    pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
+                    grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
+                    vehicle.move(grid, point); // Move the vehicle image
+
+                    shortestPathRectangles.add(pathRectangle); // Add the path rectangle to the list
+                }
             });
             timeline.getKeyFrames().add(keyFrame);
         }
@@ -69,11 +80,11 @@ public class Main extends Application {
 
         AtomicBoolean isSettingStart = new AtomicBoolean(true);
 
-        Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/obstacle.jpeg");
-        Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/ground.png");
+        Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
+        Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
 
-        Vehicle car1 = new Car("file:/Users/semihburakatilgan/Desktop/pngegg.png");
-        Vehicle car2 = new Car("file:/Users/semihburakatilgan/Desktop/car_red.png");
+        Vehicle car1 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/pngegg.png");
+        Vehicle car2 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/car_red.png");
         vehicles.add(car1);
         vehicles.add(car2);
 
