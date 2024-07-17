@@ -25,48 +25,47 @@ public class Main extends Application {
     private List<int[]> destinations = new ArrayList<>();
     private int currentVehicleIndex = 0;
 
-    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex) {
+    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex, boolean[][] occupiedCells, int[][] map) {
         if (path.isEmpty()) {
             System.out.println("\nNo paths found.");
             return;
         }
-
+    
         Timeline timeline = new Timeline();
         for (int i = 1; i < path.size(); i++) { // Skip last point
             int[] point = path.get(i);
-            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 300), event -> { // 100 milliseconds per cell
-                // Check for potential collision
-                boolean collision = false;
-                for (Vehicle v : vehicles) {
-                    if (v != vehicle && v.isAtPosition(point[0], point[1])) {
-                        collision = true;
-                        break;
-                    }
+            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 500), event -> { // 500 milliseconds per cell
+                int[] currentPos = vehicle.getCurrentPosition();
+                if (occupiedCells[point[0]][point[1]]) {
+                    System.out.println("Collision detected at: [" + point[1] + ", " + point[0] + "]");
+                    List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells);
+                    printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map);
+                    return;
                 }
-
-                if (!collision) {
-                    Rectangle pathRectangle = new Rectangle();
-                    pathRectangle.setWidth(63);
-                    pathRectangle.setHeight(63);
-                    pathRectangle.setFill(vehicleIndex == 1 ? Color.RED : Color.rgb(255, 255, 0, 0.5)); 
-                    pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
-                    grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
-                    vehicle.move(grid, point); // Move the vehicle image
-
-                    shortestPathRectangles.add(pathRectangle); // Add the path rectangle to the list
-                }
+    
+                Rectangle pathRectangle = new Rectangle();
+                pathRectangle.setWidth(63);
+                pathRectangle.setHeight(63);
+                pathRectangle.setFill(vehicleIndex == 1 ? Color.RED : Color.rgb(255, 255, 0, 0.5));
+                pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
+                grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
+                vehicle.move(grid, point); // Move the vehicle image
+    
+                occupiedCells[currentPos[0]][currentPos[1]] = false; // Free previous cell
+                occupiedCells[point[0]][point[1]] = true; // Mark cell as occupied
+                shortestPathRectangles.add(pathRectangle); // Add the path rectangle to the list
             });
             timeline.getKeyFrames().add(keyFrame);
         }
         timeline.play();
-
-        System.out.println("\nShortest path:");
+    
+        System.out.println("\nShortest path for vehicle " + vehicleIndex + ":");
         for (int[] point : path) {
             System.out.print("[" + point[1] + ", " + point[0] + "] ");
         }
-        System.out.println(" Time: " + (path.size()) + " seconds");
+        System.out.println(" Time: " + (path.size() * 0.5) + " seconds"); // Adjusted to 0.5 seconds per step
     }
-
+    
     @Override
     public void start(Stage stage) {
         TrackGenerator generator = new TrackGenerator(10, 10);
@@ -82,7 +81,7 @@ public class Main extends Application {
 
         Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
         Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
-
+        
         Vehicle car1 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/pngegg.png");
         Vehicle car2 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/car_red.png");
         vehicles.add(car1);
@@ -174,24 +173,27 @@ public class Main extends Application {
         }
 
         startButton.setOnAction(event -> {
+            boolean[][] occupiedCells = new boolean[10][10];
+        
             for (int i = 0; i < vehicles.size(); i++) {
                 int[] start = starts.get(i);
                 int[] dest = destinations.get(i);
-
+        
                 map[start[0]][start[1]] = -1;
                 map[dest[0]][dest[1]] = 2;
-
+        
                 generator.printTrack();
-
-                List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1]);
-                printShortestPath(path, grid, vehicles.get(i),i);
-
+        
+                List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells);
+                printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map);
+        
                 // Reset the start and destination cells to be empty again
                 map[start[0]][start[1]] = 0;
                 map[dest[0]][dest[1]] = 0;
             }
+       
         });
-
+        
         VBox root = new VBox(startButton, grid);
         VBox.setVgrow(grid, Priority.ALWAYS);
 

@@ -4,23 +4,23 @@ import javafx.scene.layout.GridPane;
 
 public abstract class Vehicle {
     protected ImageView vehicleImageView;
+    protected int[] currentPosition;
 
     public Vehicle(String imagePath) {
         Image vehicleImage = new Image(imagePath);
         vehicleImageView = new ImageView(vehicleImage);
         vehicleImageView.setFitWidth(50); // Adjust the size as needed
         vehicleImageView.setFitHeight(50); // Adjust the size as needed
+        currentPosition = new int[2];
     }
 
     public ImageView getVehicleImageView() {
         return vehicleImageView;
     }
 
-    public abstract void move(GridPane grid, int[] position);
-
-    public boolean isAtPosition(int x, int y) {
-        Integer col = GridPane.getColumnIndex(vehicleImageView);
-        Integer row = GridPane.getRowIndex(vehicleImageView);
-        return col != null && row != null && col == y && row == x; }
-    
+    public int[] getCurrentPosition() {
+        return currentPosition;
     }
+
+    public abstract void move(GridPane grid, int[] position);
+}
