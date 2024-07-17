@@ -32,11 +32,18 @@ public class Main extends Application {
         }
     
         Timeline timeline = new Timeline();
+        AtomicBoolean collisionDetected = new AtomicBoolean(false); // To stop the timeline on collision
+    
         for (int i = 1; i < path.size(); i++) { // Skip last point
             int[] point = path.get(i);
             KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 500), event -> { // 500 milliseconds per cell
+                if (collisionDetected.get()) {
+                    return;
+                }
+    
                 int[] currentPos = vehicle.getCurrentPosition();
                 if (occupiedCells[point[0]][point[1]]) {
+                    collisionDetected.set(true);
                     System.out.println("Collision detected at: [" + point[1] + ", " + point[0] + "]");
                     List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells);
                     printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map);
@@ -46,7 +53,7 @@ public class Main extends Application {
                 Rectangle pathRectangle = new Rectangle();
                 pathRectangle.setWidth(63);
                 pathRectangle.setHeight(63);
-                pathRectangle.setFill(vehicleIndex == 1 ? Color.RED : Color.rgb(255, 255, 0, 0.5));
+                pathRectangle.setFill(vehicleIndex == 1 ? Color.rgb(250,0,0,0.4) : Color.rgb(250, 250, 0, 0.4));
                 pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
                 grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
                 vehicle.move(grid, point); // Move the vehicle image
@@ -188,10 +195,8 @@ public class Main extends Application {
                 printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map);
         
                 // Reset the start and destination cells to be empty again
-                map[start[0]][start[1]] = 0;
-                map[dest[0]][dest[1]] = 0;
+         
             }
-       
         });
         
         VBox root = new VBox(startButton, grid);
