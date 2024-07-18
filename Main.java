@@ -30,49 +30,56 @@ public class Main extends Application {
             System.out.println("\nNo paths found.");
             return;
         }
-    
+
         Timeline timeline = new Timeline();
-        AtomicBoolean collisionDetected = new AtomicBoolean(false); // To stop the timeline on collision
-    
-        for (int i = 1; i < path.size(); i++) { // Skip last point
+        AtomicBoolean collisionDetected = new AtomicBoolean(false);
+
+        for (int i = 1; i < path.size(); i++) {
             int[] point = path.get(i);
-            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 500), event -> { // 500 milliseconds per cell
+            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 500), event -> {
                 if (collisionDetected.get()) {
                     return;
                 }
-    
+
                 int[] currentPos = vehicle.getCurrentPosition();
                 if (occupiedCells[point[0]][point[1]]) {
                     collisionDetected.set(true);
-                    System.out.println("Collision detected at: [" + point[1] + ", " + point[0] + "]");
+                    
+
+                    // Update the current position before recalculating the path
+                    vehicle.setCurrentPosition(currentPos);
+
                     List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells);
                     printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map);
+                    System.out.println("Collision detected at: [" + point[1] + ", " + point[0] + "]");
                     return;
                 }
-    
+
                 Rectangle pathRectangle = new Rectangle();
                 pathRectangle.setWidth(63);
                 pathRectangle.setHeight(63);
-                pathRectangle.setFill(vehicleIndex == 1 ? Color.rgb(250,0,0,0.4) : Color.rgb(250, 250, 0, 0.4));
-                pathRectangle.setMouseTransparent(true); // Make the rectangle non-interactive
-                grid.add(pathRectangle, point[1], point[0]); // Add the path rectangle
-                vehicle.move(grid, point); // Move the vehicle image
-    
-                occupiedCells[currentPos[0]][currentPos[1]] = false; // Free previous cell
-                occupiedCells[point[0]][point[1]] = true; // Mark cell as occupied
-                shortestPathRectangles.add(pathRectangle); // Add the path rectangle to the list
+                pathRectangle.setFill(vehicleIndex == 1 ? Color.rgb(250, 0, 0, 0.4) : Color.rgb(250, 250, 0, 0.4));
+                pathRectangle.setMouseTransparent(true);
+                grid.add(pathRectangle, point[1], point[0]);
+
+                vehicle.move(grid, point);
+                vehicle.setCurrentPosition(point);  // Update the current position of the vehicle
+
+                occupiedCells[currentPos[0]][currentPos[1]] = false;
+                occupiedCells[point[0]][point[1]] = true;
+                shortestPathRectangles.add(pathRectangle);
             });
             timeline.getKeyFrames().add(keyFrame);
         }
         timeline.play();
-    
+
         System.out.println("\nShortest path for vehicle " + vehicleIndex + ":");
         for (int[] point : path) {
             System.out.print("[" + point[1] + ", " + point[0] + "] ");
         }
-        System.out.println(" Time: " + (path.size() * 0.5) + " seconds"); // Adjusted to 0.5 seconds per step
+        System.out.println(" Time: " + (path.size()) + " seconds");
     }
-    
+
     @Override
     public void start(Stage stage) {
         TrackGenerator generator = new TrackGenerator(10, 10);
@@ -145,8 +152,8 @@ public class Main extends Application {
 
                             // Set new start point
                             Rectangle startRectangle = new Rectangle();
-                            startRectangle.setWidth(64); // Set to a fixed value
-                            startRectangle.setHeight(64); // Set to a fixed value
+                            startRectangle.setWidth(63); // Set to a fixed value
+                            startRectangle.setHeight(63); // Set to a fixed value
                             startRectangle.setFill(Color.GREEN); // Start color
                             grid.add(startRectangle, x, y); // Add the start rectangle
 
@@ -159,8 +166,8 @@ public class Main extends Application {
                         } else {
                             // Set new destination point
                             Rectangle destRectangle = new Rectangle();
-                            destRectangle.setWidth(64); // Set to a fixed value
-                            destRectangle.setHeight(64); // Set to a fixed value
+                            destRectangle.setWidth(63); // Set to a fixed value
+                            destRectangle.setHeight(63); // Set to a fixed value
                             destRectangle.setFill(Color.BLUE); // Destination color
                             grid.add(destRectangle, x, y); // Add the destination rectangle
 
@@ -188,25 +195,21 @@ public class Main extends Application {
         
                 map[start[0]][start[1]] = -1;
                 map[dest[0]][dest[1]] = 2;
-        
-                generator.printTrack();
-        
                 List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells);
+                vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]}); // Set initial position
                 printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map);
-        
-                // Reset the start and destination cells to be empty again
-         
             }
         });
-        
-        VBox root = new VBox(startButton, grid);
+    
+        VBox vbox = new VBox(startButton,grid);
         VBox.setVgrow(grid, Priority.ALWAYS);
-
-        Scene scene = new Scene(root, 640, 670);
+    
+        Scene scene = new Scene(vbox, 640, 670);
         stage.setScene(scene);
+        stage.setTitle("OtonomTrackFinder");
         stage.show();
     }
-
+    
     public static void main(String[] args) {
         launch(args);
     }

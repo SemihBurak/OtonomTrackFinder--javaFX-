@@ -22,5 +22,9 @@ public abstract class Vehicle {
         return currentPosition;
     }
 
+    public void setCurrentPosition(int[] position) {
+        this.currentPosition = position;
+    }
+
     public abstract void move(GridPane grid, int[] position);
 }
