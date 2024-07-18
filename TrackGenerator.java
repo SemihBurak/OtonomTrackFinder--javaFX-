@@ -23,7 +23,7 @@ public class TrackGenerator {
 
     private void generateTrack() {
         int totalCells = rows * cols;
-        int numObstructions = (int) (totalCells * 0.05);
+        int numObstructions = (int) (totalCells * 0.08);
 
         List<Integer> cells = new ArrayList<>(totalCells);
         

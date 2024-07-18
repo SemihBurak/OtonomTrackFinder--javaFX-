@@ -27,4 +27,6 @@ public abstract class Vehicle {
     }
 
     public abstract void move(GridPane grid, int[] position);
+
+    public abstract boolean canFly();
 }

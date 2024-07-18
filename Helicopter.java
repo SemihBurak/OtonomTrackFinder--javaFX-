@@ -1,7 +1,7 @@
 import javafx.scene.layout.GridPane;
 
-public class Car extends Vehicle {
-    public Car(String imagePath) {
+public class Helicopter extends Vehicle {
+    public Helicopter(String imagePath) {
         super(imagePath);
     }
 
@@ -14,6 +14,6 @@ public class Car extends Vehicle {
 
     @Override
     public boolean canFly() {
-        return false;
+        return true; // Helicopters can fly
     }
 }
