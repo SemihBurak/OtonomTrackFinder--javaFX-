@@ -7,6 +7,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -26,6 +27,7 @@ public class Main extends Application {
     private List<int[]> destinations = new ArrayList<>();
     private int currentVehicleIndex = 0;
     private boolean isHelicopterMode = false;
+    private boolean vehicleTypeChosen = false;
 
     private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex, boolean[][] occupiedCells, int[][] map) {
         if (path.isEmpty()) {
@@ -47,7 +49,6 @@ public class Main extends Application {
                 if (!vehicle.canFly() && occupiedCells[point[0]][point[1]]) {
                     collisionDetected.set(true);
 
-                    // Update the current position before recalculating the path
                     vehicle.setCurrentPosition(currentPos);
 
                     List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly());
@@ -70,7 +71,7 @@ public class Main extends Application {
                 grid.add(pathRectangle, point[1], point[0]);
 
                 vehicle.move(grid, point);
-                vehicle.setCurrentPosition(point);  // Update the current position of the vehicle
+                vehicle.setCurrentPosition(point);
 
                 if (!vehicle.canFly()) {
                     occupiedCells[currentPos[0]][currentPos[1]] = false;
@@ -96,131 +97,21 @@ public class Main extends Application {
         int[][] map = generator.getTrack();
 
         Button startButton = new Button("Start");
+        Button addCarButton = new Button("Add Car");
         Button addHelicopterButton = new Button("Add Helicopter");
+        Button resetButton = new Button("Reset");
 
         GridPane grid = new GridPane();
         grid.setGridLinesVisible(true);
+
+        Label messageLabel = new Label("Choose a vehicle type:");
 
         AtomicBoolean isSettingStart = new AtomicBoolean(true);
 
         Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
         Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
 
-        Vehicle car1 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/pngegg.png");
-        Vehicle car2 = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/car_red.png");
-        
-        vehicles.add(car1);
-        vehicles.add(car2);
-
-        for (int i = 0; i < vehicles.size(); i++) {
-            starts.add(new int[2]);
-            destinations.add(new int[2]);
-        }
-
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                if (map[i][j] == 1) {
-                    ImageView obstacleImageView = new ImageView(obstacleImage);
-                    obstacleImageView.setFitWidth(64);
-                    obstacleImageView.setFitHeight(64);
-                    grid.add(obstacleImageView, j, i);
-    
-                    obstacleImageView.setOnMouseClicked(event -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Error");
-                        alert.setHeaderText(null);
-                        alert.setContentText("You cannot set the start or destination on an obstacle.");
-                        alert.showAndWait();
-                    });
-    
-                } else {
-                    ImageView groundImageView = new ImageView(groundImage);
-                    groundImageView.setFitWidth(64);
-                    groundImageView.setFitHeight(64);
-                    grid.add(groundImageView, j, i);
-    
-                    groundImageView.setOnMouseClicked(event -> {
-                        int x = GridPane.getColumnIndex(groundImageView);
-                        int y = GridPane.getRowIndex(groundImageView);
-    
-                        if (isSettingStart.get()) {
-                            if (isHelicopterMode) {
-                                Vehicle helicopter = new Helicopter("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/helicopter.png");
-                                vehicles.add(helicopter);
-                                starts.add(new int[]{y, x});
-                                destinations.add(new int[2]);
-                    
-                                // Set new start point for helicopter
-                                Rectangle startRectangle = new Rectangle();
-                                startRectangle.setWidth(63);
-                                startRectangle.setHeight(63);
-                                startRectangle.setFill(Color.GREEN);
-                                grid.add(startRectangle, x, y);
-                    
-                                // Add helicopter image to the grid
-                                ImageView helicopterImageView = helicopter.getVehicleImageView();
-                                helicopterImageView.setFitWidth(63);
-                                helicopterImageView.setFitHeight(63);
-                                grid.add(helicopterImageView, x, y);
-                    
-                                helicopter.setCurrentPosition(new int[]{y, x});
-                    
-                                currentVehicleIndex = vehicles.size() - 1;
-                                isSettingStart.set(false);
-                            } else {
-                                // Clear previous start and destination points
-                                grid.getChildren().removeIf(node -> {
-                                    Integer columnIndex = GridPane.getColumnIndex(node);
-                                    Integer rowIndex = GridPane.getRowIndex(node);
-                                    return columnIndex != null && rowIndex != null && (
-                                        (columnIndex == starts.get(currentVehicleIndex)[1] && rowIndex == starts.get(currentVehicleIndex)[0]) ||
-                                        (columnIndex == destinations.get(currentVehicleIndex)[1] && rowIndex == destinations.get(currentVehicleIndex)[0])
-                                    ) && node instanceof Rectangle;
-                                });
-    
-                                // Remove shortest path rectangles
-                                for (Rectangle rectangle : shortestPathRectangles) {
-                                    grid.getChildren().remove(rectangle);
-                                }
-                                shortestPathRectangles.clear();
-    
-                                // Set new start point
-                                Rectangle startRectangle = new Rectangle();
-                                startRectangle.setWidth(63);
-                                startRectangle.setHeight(63);
-                                startRectangle.setFill(Color.GREEN);
-                                grid.add(startRectangle, x, y);
-    
-                                grid.getChildren().remove(vehicles.get(currentVehicleIndex).getVehicleImageView());
-                                grid.add(vehicles.get(currentVehicleIndex).getVehicleImageView(), x, y);
-                                starts.get(currentVehicleIndex)[0] = y;
-                                starts.get(currentVehicleIndex)[1] = x;
-    
-                                isSettingStart.set(false);
-                            }
-                        } else {
-                            // Set new destination point
-                            Rectangle destRectangle = new Rectangle();
-                            destRectangle.setWidth(63);
-                            destRectangle.setHeight(63);
-                            destRectangle.setFill(Color.BLUE);
-                            grid.add(destRectangle, x, y);
-    
-                            destinations.get(currentVehicleIndex)[0] = y;
-                            destinations.get(currentVehicleIndex)[1] = x;
-                            isSettingStart.set(true);
-    
-                            currentVehicleIndex++;
-                            isHelicopterMode = false;
-    
-                            if (currentVehicleIndex >= vehicles.size()) {
-                                currentVehicleIndex = 0;
-                            }
-                        }
-                    });
-                }
-            }
-        }
+        setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
 
         startButton.setOnAction(event -> {
             boolean[][] occupiedCells = new boolean[10][10];
@@ -232,23 +123,121 @@ public class Main extends Application {
                 map[start[0]][start[1]] = -1;
                 map[dest[0]][dest[1]] = 2;
                 List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly());
-                vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]}); // Set initial position
+                vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]});
                 printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map);
             }
         });
 
+        addCarButton.setOnAction(event -> {
+            isHelicopterMode = false;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the car on the grid.");
+        });
+
         addHelicopterButton.setOnAction(event -> {
             isHelicopterMode = true;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the helicopter on the grid.");
         });
-    
-        HBox hbox = new HBox(startButton, addHelicopterButton);
-VBox vbox = new VBox(hbox, grid);
-VBox.setVgrow(grid, Priority.ALWAYS);
-    
-        Scene scene = new Scene(vbox, 640, 670);
+
+        resetButton.setOnAction(event -> {
+            grid.getChildren().clear();
+            vehicles.clear();
+            starts.clear();
+            destinations.clear();
+            currentVehicleIndex = 0;
+            vehicleTypeChosen = false;
+            isSettingStart.set(true);
+            messageLabel.setText("Choose a vehicle type:");
+            setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
+        });
+
+        HBox hbox = new HBox(startButton, addCarButton, addHelicopterButton, resetButton);
+        VBox vbox = new VBox(messageLabel, hbox, grid);
+        VBox.setVgrow(grid, Priority.ALWAYS);
+
+        Scene scene = new Scene(vbox, 640, 690);
         stage.setScene(scene);
         stage.setTitle("OtonomTrackFinder");
         stage.show();
+    }
+    // This method sets up the grid with the given map and images for obstacles and ground. It also handles the logic for placing vehicles on the grid.
+    // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.
+    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image groundImage, AtomicBoolean isSettingStart) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (map[i][j] == 1) {
+                    ImageView obstacleImageView = new ImageView(obstacleImage);
+                    obstacleImageView.setFitWidth(64);
+                    obstacleImageView.setFitHeight(64);
+                    grid.add(obstacleImageView, j, i);
+                } else {
+                    ImageView groundImageView = new ImageView(groundImage);
+                    groundImageView.setFitWidth(64);
+                    groundImageView.setFitHeight(64);
+                    grid.add(groundImageView, j, i);
+
+                    groundImageView.setOnMouseClicked(mouseEvent -> {
+                        if (!vehicleTypeChosen) {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Information");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Please choose a vehicle type first.");
+                            alert.showAndWait();
+                            return;
+                        }
+
+                        int x = GridPane.getColumnIndex(groundImageView);
+                        int y = GridPane.getRowIndex(groundImageView);
+
+                        if (isSettingStart.get()) {
+                            Vehicle vehicle;
+                            if (isHelicopterMode) {
+                                vehicle = new Helicopter("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/helicopter.png");
+                            } else {
+                                vehicle = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/default_car.png");
+                            }
+                            vehicles.add(vehicle);
+                            starts.add(new int[]{y, x});
+                            destinations.add(new int[2]);
+
+                            Rectangle startRectangle = new Rectangle();
+                            startRectangle.setWidth(63);
+                            startRectangle.setHeight(63);
+                            startRectangle.setFill(Color.GREEN);
+                            grid.add(startRectangle, x, y);
+
+                            ImageView vehicleImageView = vehicle.getVehicleImageView();
+                            vehicleImageView.setFitWidth(63);
+                            vehicleImageView.setFitHeight(63);
+                            grid.add(vehicleImageView, x, y);
+
+                            vehicle.setCurrentPosition(new int[]{y, x});
+
+                            currentVehicleIndex = vehicles.size() - 1;
+                            isSettingStart.set(false);
+                        } else {
+                            Rectangle destRectangle = new Rectangle();
+                            destRectangle.setWidth(63);
+                            destRectangle.setHeight(63);
+                            destRectangle.setFill(Color.BLUE);
+                            grid.add(destRectangle, x, y);
+
+                            destinations.get(currentVehicleIndex)[0] = y;
+                            destinations.get(currentVehicleIndex)[1] = x;
+                            isSettingStart.set(true);
+                            vehicleTypeChosen = false;
+                            currentVehicleIndex++;
+                            isHelicopterMode = false;
+    
+                            if (currentVehicleIndex >= vehicles.size()) {
+                                currentVehicleIndex = 0;
+                            }
+                        }
+                    });
+                }
+            }
+        }
     }
     
     public static void main(String[] args) {
