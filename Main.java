@@ -90,77 +90,6 @@ public class Main extends Application {
         System.out.println(" Time: " + (path.size()) + " seconds");
     }
 
-    @Override
-    public void start(Stage stage) {
-        TrackGenerator generator = new TrackGenerator(10, 10);
-        generator.printTrack();
-        int[][] map = generator.getTrack();
-
-        Button startButton = new Button("Start");
-        Button addCarButton = new Button("Add Car");
-        Button addHelicopterButton = new Button("Add Helicopter");
-        Button resetButton = new Button("Reset");
-
-        GridPane grid = new GridPane();
-        grid.setGridLinesVisible(true);
-
-        Label messageLabel = new Label("Choose a vehicle type:");
-
-        AtomicBoolean isSettingStart = new AtomicBoolean(true);
-
-        Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
-        Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
-
-        setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
-
-        startButton.setOnAction(event -> {
-            boolean[][] occupiedCells = new boolean[10][10];
-
-            for (int i = 0; i < vehicles.size(); i++) {
-                int[] start = starts.get(i);
-                int[] dest = destinations.get(i);
-
-                map[start[0]][start[1]] = -1;
-                map[dest[0]][dest[1]] = 2;
-                List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly());
-                vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]});
-                printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map);
-            }
-        });
-
-        addCarButton.setOnAction(event -> {
-            isHelicopterMode = false;
-            vehicleTypeChosen = true;
-            messageLabel.setText("Place the car on the grid.");
-        });
-
-        addHelicopterButton.setOnAction(event -> {
-            isHelicopterMode = true;
-            vehicleTypeChosen = true;
-            messageLabel.setText("Place the helicopter on the grid.");
-        });
-
-        resetButton.setOnAction(event -> {
-            grid.getChildren().clear();
-            vehicles.clear();
-            starts.clear();
-            destinations.clear();
-            currentVehicleIndex = 0;
-            vehicleTypeChosen = false;
-            isSettingStart.set(true);
-            messageLabel.setText("Choose a vehicle type:");
-            setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
-        });
-
-        HBox hbox = new HBox(startButton, addCarButton, addHelicopterButton, resetButton);
-        VBox vbox = new VBox(messageLabel, hbox, grid);
-        VBox.setVgrow(grid, Priority.ALWAYS);
-
-        Scene scene = new Scene(vbox, 640, 690);
-        stage.setScene(scene);
-        stage.setTitle("OtonomTrackFinder");
-        stage.show();
-    }
     // This method sets up the grid with the given map and images for obstacles and ground. It also handles the logic for placing vehicles on the grid.
     // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.
     private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image groundImage, AtomicBoolean isSettingStart) {
@@ -240,6 +169,77 @@ public class Main extends Application {
         }
     }
     
+    @Override
+    public void start(Stage stage) {
+        TrackGenerator generator = new TrackGenerator(10, 10);
+        generator.printTrack();
+        int[][] map = generator.getTrack();
+
+        Button startButton = new Button("Start");
+        Button addCarButton = new Button("Add Car");
+        Button addHelicopterButton = new Button("Add Helicopter");
+        Button resetButton = new Button("Reset");
+
+        GridPane grid = new GridPane();
+        grid.setGridLinesVisible(true);
+
+        Label messageLabel = new Label("Choose a vehicle type:");
+
+        AtomicBoolean isSettingStart = new AtomicBoolean(true);
+
+        Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
+        Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
+
+        setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
+
+        startButton.setOnAction(event -> {
+            boolean[][] occupiedCells = new boolean[10][10];
+
+            for (int i = 0; i < vehicles.size(); i++) {
+                int[] start = starts.get(i);
+                int[] dest = destinations.get(i);
+
+                map[start[0]][start[1]] = -1;
+                map[dest[0]][dest[1]] = 2;
+                List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly());
+                vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]});
+                printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map);
+            }
+        });
+
+        addCarButton.setOnAction(event -> {
+            isHelicopterMode = false;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the car on the grid.");
+        });
+
+        addHelicopterButton.setOnAction(event -> {
+            isHelicopterMode = true;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the helicopter on the grid.");
+        });
+
+        resetButton.setOnAction(event -> {
+            grid.getChildren().clear();
+            vehicles.clear();
+            starts.clear();
+            destinations.clear();
+            currentVehicleIndex = 0;
+            vehicleTypeChosen = false;
+            isSettingStart.set(true);
+            messageLabel.setText("Choose a vehicle type:");
+            setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
+        });
+
+        HBox hbox = new HBox(startButton, addCarButton, addHelicopterButton, resetButton);
+        VBox vbox = new VBox(messageLabel, hbox, grid);
+        VBox.setVgrow(grid, Priority.ALWAYS);
+
+        Scene scene = new Scene(vbox, 640, 690);
+        stage.setScene(scene);
+        stage.setTitle("OtonomTrackFinder");
+        stage.show();
+    }
     public static void main(String[] args) {
         launch(args);
     }
