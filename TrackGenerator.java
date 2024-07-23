@@ -23,8 +23,9 @@ public class TrackGenerator {
 
     private void generateTrack() {
         int totalCells = rows * cols;
-        int numObstructions = (int) (totalCells * 0.08);
-
+        int numObstructions = (int) (totalCells * 0.08); // 8% obstructions
+        int airobstacles = (int) (totalCells * 0.05); // 5% airobstacles
+    
         List<Integer> cells = new ArrayList<>(totalCells);
         
         // Add 1s for obstructions
@@ -32,14 +33,19 @@ public class TrackGenerator {
             cells.add(1);
         }
         
+        // Add 3s for special cells
+        for (int i = 0; i < airobstacles; i++) {
+            cells.add(3);
+        }
+        
         // Add 0s for clear paths
-        for (int i = numObstructions; i < totalCells; i++) {
+        for (int i = numObstructions + airobstacles; i < totalCells; i++) {
             cells.add(0);
         }
         
-        // Shuffle the list to randomly distribute 0s and 1s
+        // Shuffle the list to randomly distribute 0s, 1s, and 3s
         Collections.shuffle(cells, new Random());
-
+    
         // Populate the track array with the shuffled list
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

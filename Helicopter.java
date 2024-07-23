@@ -14,6 +14,6 @@ public class Helicopter extends Vehicle {
 
     @Override
     public boolean canFly() {
-        return true; // Helicopters can fly
+        return true; 
     }
 }

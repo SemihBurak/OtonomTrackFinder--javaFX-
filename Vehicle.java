@@ -9,8 +9,8 @@ public abstract class Vehicle {
     public Vehicle(String imagePath) {
         Image vehicleImage = new Image(imagePath);
         vehicleImageView = new ImageView(vehicleImage);
-        vehicleImageView.setFitWidth(50); // Adjust the size as needed
-        vehicleImageView.setFitHeight(50); // Adjust the size as needed
+        vehicleImageView.setFitWidth(50); 
+        vehicleImageView.setFitHeight(50); 
         currentPosition = new int[2];
     }
 

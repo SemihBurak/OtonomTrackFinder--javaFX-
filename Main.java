@@ -91,8 +91,8 @@ public class Main extends Application {
     }
 
     // This method sets up the grid with the given map and images for obstacles and ground. It also handles the logic for placing vehicles on the grid.
-    // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.
-    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image groundImage, AtomicBoolean isSettingStart) {
+    // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.(
+    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage ,Image groundImage, AtomicBoolean isSettingStart) {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (map[i][j] == 1) {
@@ -100,6 +100,12 @@ public class Main extends Application {
                     obstacleImageView.setFitWidth(64);
                     obstacleImageView.setFitHeight(64);
                     grid.add(obstacleImageView, j, i);
+                } else if (map[i][j] == 3) {
+                    ImageView airobtacleImageView = new ImageView(airobstacleImage);
+                    airobtacleImageView.setFitWidth(64);
+                    airobtacleImageView.setFitHeight(64);
+                    grid.add(airobtacleImageView, j, i);
+                   
                 } else {
                     ImageView groundImageView = new ImageView(groundImage);
                     groundImageView.setFitWidth(64);
@@ -189,16 +195,17 @@ public class Main extends Application {
 
         Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
         Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
+        Image airobstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/mountainnew.png");
 
-        setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
+        setupGrid(grid, map, obstacleImage, airobstacleImage, groundImage, isSettingStart);
 
         startButton.setOnAction(event -> {
             boolean[][] occupiedCells = new boolean[10][10];
-
+        
             for (int i = 0; i < vehicles.size(); i++) {
                 int[] start = starts.get(i);
                 int[] dest = destinations.get(i);
-
+        
                 map[start[0]][start[1]] = -1;
                 map[dest[0]][dest[1]] = 2;
                 List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly());
@@ -228,7 +235,7 @@ public class Main extends Application {
             vehicleTypeChosen = false;
             isSettingStart.set(true);
             messageLabel.setText("Choose a vehicle type:");
-            setupGrid(grid, map, obstacleImage, groundImage, isSettingStart);
+            setupGrid(grid, map, obstacleImage,airobstacleImage, groundImage, isSettingStart);
         });
 
         HBox hbox = new HBox(startButton, addCarButton, addHelicopterButton, resetButton);
