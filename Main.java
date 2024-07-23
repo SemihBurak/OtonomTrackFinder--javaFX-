@@ -93,8 +93,8 @@ public class Main extends Application {
     // This method sets up the grid with the given map and images for obstacles and ground. It also handles the logic for placing vehicles on the grid.
     // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.
     private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage ,Image groundImage, AtomicBoolean isSettingStart) {
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 12; j++) {
                 if (map[i][j] == 1) {
                     ImageView obstacleImageView = new ImageView(obstacleImage);
                     obstacleImageView.setFitWidth(64);
@@ -128,7 +128,7 @@ public class Main extends Application {
                         if (isSettingStart.get()) {
                             Vehicle vehicle;
                             if (isHelicopterMode) {
-                                vehicle = new Helicopter("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/helicopter.png");
+                                vehicle = new Helicopter("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/heligif.gif");
                             } else {
                                 vehicle = new Tank("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/TANK.gif");
                             }
@@ -177,7 +177,7 @@ public class Main extends Application {
     
     @Override
     public void start(Stage stage) {
-        TrackGenerator generator = new TrackGenerator(10, 10);
+        TrackGenerator generator = new TrackGenerator(12, 12);
         generator.printTrack();
         int[][] map = generator.getTrack();
 
@@ -200,7 +200,7 @@ public class Main extends Application {
         setupGrid(grid, map, obstacleImage, airobstacleImage, groundImage, isSettingStart);
 
         startButton.setOnAction(event -> {
-            boolean[][] occupiedCells = new boolean[10][10];
+            boolean[][] occupiedCells = new boolean[12][12];
         
             for (int i = 0; i < vehicles.size(); i++) {
                 int[] start = starts.get(i);
@@ -242,7 +242,7 @@ public class Main extends Application {
         VBox vbox = new VBox(messageLabel, hbox, grid);
         VBox.setVgrow(grid, Priority.ALWAYS);
 
-        Scene scene = new Scene(vbox, 640, 690);
+        Scene scene = new Scene(vbox, 766, 818);
         stage.setScene(scene);
         stage.setTitle("OtonomTrackFinder");
         stage.show();
