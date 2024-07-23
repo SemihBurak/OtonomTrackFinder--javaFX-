@@ -91,7 +91,7 @@ public class Main extends Application {
     }
 
     // This method sets up the grid with the given map and images for obstacles and ground. It also handles the logic for placing vehicles on the grid.
-    // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.(
+    // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.
     private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage ,Image groundImage, AtomicBoolean isSettingStart) {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
@@ -130,7 +130,7 @@ public class Main extends Application {
                             if (isHelicopterMode) {
                                 vehicle = new Helicopter("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/helicopter.png");
                             } else {
-                                vehicle = new Car("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/default_car.png");
+                                vehicle = new Tank("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/TANK.gif");
                             }
                             vehicles.add(vehicle);
                             starts.add(new int[]{y, x});
@@ -182,7 +182,7 @@ public class Main extends Application {
         int[][] map = generator.getTrack();
 
         Button startButton = new Button("Start");
-        Button addCarButton = new Button("Add Car");
+        Button addCarButton = new Button("Add Tank");
         Button addHelicopterButton = new Button("Add Helicopter");
         Button resetButton = new Button("Reset");
 
@@ -217,7 +217,7 @@ public class Main extends Application {
         addCarButton.setOnAction(event -> {
             isHelicopterMode = false;
             vehicleTypeChosen = true;
-            messageLabel.setText("Place the car on the grid.");
+            messageLabel.setText("Place the tank on the grid.");
         });
 
         addHelicopterButton.setOnAction(event -> {

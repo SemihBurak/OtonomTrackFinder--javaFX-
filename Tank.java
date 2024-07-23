@@ -1,7 +1,7 @@
 import javafx.scene.layout.GridPane;
 
-public class Car extends Vehicle {
-    public Car(String imagePath) {
+public class Tank extends Vehicle {
+    public Tank(String imagePath) {
         super(imagePath);
     }
 
