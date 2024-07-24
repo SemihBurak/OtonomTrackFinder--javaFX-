@@ -224,6 +224,12 @@ public class Main extends Application {
 
         startButton.setOnAction(event -> {
             boolean[][] occupiedCells = new boolean[12][12];
+
+            for(int i=0; i<starts.size(); i++){
+              int [] start = starts.get(i);
+
+                occupiedCells[start[0]][start[1]] = true;
+            }
         
             for (int i = 0; i < vehicles.size(); i++) {
                 int[] start = starts.get(i);
