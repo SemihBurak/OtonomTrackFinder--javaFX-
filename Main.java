@@ -142,9 +142,9 @@ public class Main extends Application {
                         if (isSettingStart.get()) {
                             Vehicle vehicle;
                             if (isHelicopterMode) {
-                                vehicle = new Helicopter("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/heligif.gif");
+                                vehicle = new Helicopter("file:Assets/heligif.gif");
                             } else {
-                                vehicle = new Tank("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/TANK.gif");
+                                vehicle = new Tank("file:Assets/TANK.gif");
                             }
                             vehicles.add(vehicle);
                             starts.add(new int[]{y, x});
@@ -207,9 +207,9 @@ public class Main extends Application {
 
         AtomicBoolean isSettingStart = new AtomicBoolean(true);
 
-        Image obstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/obstacle.jpeg");
-        Image groundImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/ground.png");
-        Image airobstacleImage = new Image("file:/Users/semihburakatilgan/Desktop/OTONOMTRACKFINDER/Assets/mountainnew.png");
+        Image obstacleImage = new Image("file:Assets/obstacle.jpeg");
+        Image groundImage = new Image("file:Assets/ground.png");
+        Image airobstacleImage = new Image("file:Assets/mountainnew.png");
 
         setupGrid(grid, map, obstacleImage, airobstacleImage, groundImage, isSettingStart);
 
