@@ -35,7 +35,7 @@ public class AStarAlgorithm {
             for (int[] direction : directions) {
                 int newX = current.x + direction[0];
                 int newY = current.y + direction[1];
-                if (newX >= 0 && newX < 12 && newY >= 0 && newY < 12 && (!occupiedCells[newX][newY]) && (map[newX][newY] != 3) && (canFly||map[newX][newY] != 1) && !closedList[newX][newY]) {
+                if (newX >= 0 && newX < 12 && newY >= 0 && newY < 12 && (!occupiedCells[newX][newY]) && (map[newX][newY] != 3) && (canFly||map[newX][newY] != 1) && (canFly||map[newX][newY] != 4) && !closedList[newX][newY]) {
                     double g = current.g;
                     if (direction[0] != 0 && direction[1] != 0) {
                         g += Math.sqrt(2); // Diagonal movement cost

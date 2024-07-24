@@ -106,7 +106,7 @@ public class Main extends Application {
     }
     // This method sets up the grid with the given map and images for obstacles and ground. It also handles the logic for placing vehicles on the grid.
     // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.
-    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage ,Image groundImage, AtomicBoolean isSettingStart) {
+    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage , Image waterImage ,Image groundImage, AtomicBoolean isSettingStart) {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 12; j++) {
                 if (map[i][j] == 1) {
@@ -120,7 +120,15 @@ public class Main extends Application {
                     airobtacleImageView.setFitHeight(64);
                     grid.add(airobtacleImageView, j, i);
                    
-                } else {
+                } 
+                else if (map[i][j] == 4) {
+                    ImageView waterImageView = new ImageView(waterImage);
+                    waterImageView.setFitWidth(64);
+                    waterImageView.setFitHeight(64);
+                    grid.add(waterImageView, j, i);
+                   
+                }
+                else {
                     ImageView groundImageView = new ImageView(groundImage);
                     groundImageView.setFitWidth(64);
                     groundImageView.setFitHeight(64);
@@ -210,8 +218,9 @@ public class Main extends Application {
         Image obstacleImage = new Image("file:Assets/obstacle.jpeg");
         Image groundImage = new Image("file:Assets/ground.png");
         Image airobstacleImage = new Image("file:Assets/mountainnew.png");
+        Image waterImage = new Image("file:Assets/water.gif");
 
-        setupGrid(grid, map, obstacleImage, airobstacleImage, groundImage, isSettingStart);
+        setupGrid(grid, map, obstacleImage, airobstacleImage,waterImage, groundImage, isSettingStart);
 
         startButton.setOnAction(event -> {
             boolean[][] occupiedCells = new boolean[12][12];
@@ -249,7 +258,7 @@ public class Main extends Application {
             vehicleTypeChosen = false;
             isSettingStart.set(true);
             messageLabel.setText("Choose a vehicle type:");
-            setupGrid(grid, map, obstacleImage,airobstacleImage, groundImage, isSettingStart);
+            setupGrid(grid, map, obstacleImage,airobstacleImage,waterImage, groundImage, isSettingStart);
         });
 
         HBox hbox = new HBox(startButton, addCarButton, addHelicopterButton, resetButton);

@@ -25,7 +25,7 @@ public class TrackGenerator {
         int totalCells = rows * cols;
         int numObstructions = (int) (totalCells * 0.08); // 8% obstructions
         int airobstacles = (int) (totalCells * 0.05); // 5% airobstacles
-        int waterobstacles = (int) (totalCells * 0.04); // 5% waterobstacles
+        int waterobstacles = (int) (totalCells * 0.025); // 5% waterobstacles
     
         List<Integer> cells = new ArrayList<>(totalCells);
     
@@ -58,15 +58,15 @@ public class TrackGenerator {
             }
         }
     
-     // Add 4s for waterobstacles in clusters
-Random random = new Random();
-for (int i = 0; i < waterobstacles; i++) {
-    int row = random.nextInt(rows);
-    int col = random.nextInt(cols);
-    if (track[row][col] == 0) {
-        spreadWater(row, col, 2); // Spread water in a cluster of at least 2 cells
+        // Add 4s for waterobstacles in clusters
+    Random random = new Random();
+    for (int i = 0; i < waterobstacles; i++) {
+        int row = random.nextInt(rows);
+        int col = random.nextInt(cols);
+        if (track[row][col] == 0) {
+            spreadWater(row, col, random.nextInt(3) + 1); // Spread water in a random direction
+        }
     }
-}
 }
 
 private void spreadWater(int row, int col, int remaining) {
@@ -78,12 +78,10 @@ private void spreadWater(int row, int col, int remaining) {
     remaining--;
 
     // Spread water in all directions
-    if (remaining > 0) {
-        spreadWater(row - 1, col, remaining); // Up
-        spreadWater(row, col + 1, remaining); // Right
-        spreadWater(row + 1, col, remaining); // Down
-        spreadWater(row, col - 1, remaining); // Left
-    }
+    spreadWater(row - 1, col, remaining); // Up
+    spreadWater(row, col + 1, remaining); // Right
+    spreadWater(row + 1, col, remaining); // Down
+    spreadWater(row, col - 1, remaining); // Left
 }
     
 
