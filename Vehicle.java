@@ -26,6 +26,8 @@ public abstract class Vehicle {
         this.currentPosition = position;
     }
 
+    public abstract String getType();
+    
     public abstract void move(GridPane grid, int[] position);
 
     public abstract boolean canFly();

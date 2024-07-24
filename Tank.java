@@ -13,7 +13,13 @@ public class Tank extends Vehicle {
     }
 
     @Override
+    public String getType() {
+        return "Tank";
+    }
+
+    @Override
     public boolean canFly() {
         return false;
     }
+    
 }

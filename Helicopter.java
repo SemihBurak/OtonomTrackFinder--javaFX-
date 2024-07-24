@@ -13,6 +13,11 @@ public class Helicopter extends Vehicle {
     }
 
     @Override
+    public String getType() {
+        return "Helicopter";
+    }
+
+    @Override
     public boolean canFly() {
         return true; 
     }

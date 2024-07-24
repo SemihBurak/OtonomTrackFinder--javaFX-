@@ -40,21 +40,25 @@ public class Main extends Application {
 
         for (int i = 1; i < path.size(); i++) {
             int[] point = path.get(i);
-            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 500), event -> {
+            KeyFrame keyFrame = new KeyFrame(Duration.millis(i * 400), event -> {
                 if (collisionDetected.get()) {
                     return;
                 }
 
                 int[] currentPos = vehicle.getCurrentPosition();
-                if (!vehicle.canFly() && occupiedCells[point[0]][point[1]]) {
-                    collisionDetected.set(true);
 
-                    vehicle.setCurrentPosition(currentPos);
+                if (occupiedCells[point[0]][point[1]]) {
+                    Vehicle blockingVehicle = getVehicleAtPosition(point);
+                    if (blockingVehicle != null && blockingVehicle.getType().equals(vehicle.getType())) {
+                        collisionDetected.set(true);
 
-                    List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly());
-                    printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map);
-                    System.out.println("Collision detected at: [" + point[1] + ", " + point[0] + "]");
-                    return;
+                        vehicle.setCurrentPosition(currentPos);
+
+                        List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly());
+                        printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map);
+                        System.out.println("Collision detected with same type vehicle at: [" + point[1] + ", " + point[0] + "]");
+                        return;
+                    }
                 }
 
                 Rectangle pathRectangle = new Rectangle();
@@ -73,7 +77,7 @@ public class Main extends Application {
                 vehicle.move(grid, point);
                 vehicle.setCurrentPosition(point);
 
-                if (!vehicle.canFly()) {
+                if (!vehicle.canFly() || vehicle.canFly()) {
                     occupiedCells[currentPos[0]][currentPos[1]] = false;
                     occupiedCells[point[0]][point[1]] = true;
                 }
@@ -90,6 +94,16 @@ public class Main extends Application {
         System.out.println(" Time: " + (path.size()) + " seconds");
     }
 
+    // Method to get a vehicle at a specific position
+    private Vehicle getVehicleAtPosition(int[] position) {
+        for (Vehicle vehicle : vehicles) {
+            int[] vehiclePosition = vehicle.getCurrentPosition();
+            if (vehiclePosition[0] == position[0] && vehiclePosition[1] == position[1]) {
+                return vehicle;
+            }
+        }
+        return null;
+    }
     // This method sets up the grid with the given map and images for obstacles and ground. It also handles the logic for placing vehicles on the grid.
     // We don't actually need this method. In fact, we can write the contents directly, but I wrote it this way to make the code more readable.
     private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage ,Image groundImage, AtomicBoolean isSettingStart) {
