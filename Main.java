@@ -28,6 +28,8 @@ public class Main extends Application {
     private int currentVehicleIndex = 0;
     private boolean isHelicopterMode = false;
     private boolean vehicleTypeChosen = false;
+    private boolean isEnemyTankMode = false;
+    private boolean isEnemyHelicopterMode = false;
 
     private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex, boolean[][] occupiedCells, int[][] map) {
         if (path.isEmpty()) {
@@ -151,9 +153,17 @@ public class Main extends Application {
                             Vehicle vehicle;
                             if (isHelicopterMode) {
                                 vehicle = new Helicopter("file:Assets/heligif.gif");
-                            } else {
+                            } 
+                            else if (isEnemyTankMode) {
+                                vehicle = new EnemyTank("file:/Users/semihburakatilgan/Desktop/enemytank.gif");
+                            }
+                            else if (isEnemyHelicopterMode) {
+                                vehicle = new EnemyHelicopter("file:/Users/semihburakatilgan/Desktop/enemyheli.gif");
+                            }
+                            else {
                                 vehicle = new Tank("file:Assets/TANK.gif");
                             }
+
                             vehicles.add(vehicle);
                             starts.add(new int[]{y, x});
                             destinations.add(new int[2]);
@@ -173,6 +183,7 @@ public class Main extends Application {
 
                             currentVehicleIndex = vehicles.size() - 1;
                             isSettingStart.set(false);
+
                         } else {
                             Rectangle destRectangle = new Rectangle();
                             destRectangle.setWidth(63);
@@ -184,8 +195,10 @@ public class Main extends Application {
                             destinations.get(currentVehicleIndex)[1] = x;
                             isSettingStart.set(true);
                             vehicleTypeChosen = false;
-                            currentVehicleIndex++;
                             isHelicopterMode = false;
+                            isEnemyTankMode = false;
+                            isEnemyHelicopterMode = false;
+                            currentVehicleIndex++;
     
                             if (currentVehicleIndex >= vehicles.size()) {
                                 currentVehicleIndex = 0;
@@ -204,7 +217,9 @@ public class Main extends Application {
         int[][] map = generator.getTrack();
 
         Button startButton = new Button("Start");
-        Button addCarButton = new Button("Add Tank");
+        Button addTankButton = new Button("Add Tank");
+        Button addEnemyTankButton = new Button("Add Enemy Tank");
+        Button addEnemyHelicopterButton = new Button("Add Enemy Helicopter");
         Button addHelicopterButton = new Button("Add Helicopter");
         Button resetButton = new Button("Reset");
 
@@ -224,12 +239,6 @@ public class Main extends Application {
 
         startButton.setOnAction(event -> {
             boolean[][] occupiedCells = new boolean[12][12];
-
-            for(int i=0; i<starts.size(); i++){
-              int [] start = starts.get(i);
-
-                occupiedCells[start[0]][start[1]] = true;
-            }
         
             for (int i = 0; i < vehicles.size(); i++) {
                 int[] start = starts.get(i);
@@ -243,17 +252,38 @@ public class Main extends Application {
             }
         });
 
-        addCarButton.setOnAction(event -> {
+        addTankButton.setOnAction(event -> {
             isHelicopterMode = false;
+            isEnemyHelicopterMode = false;
+            isEnemyTankMode = false;
             vehicleTypeChosen = true;
             messageLabel.setText("Place the tank on the grid.");
         });
 
+        addEnemyTankButton.setOnAction(event -> {
+            isEnemyTankMode = true;
+            isHelicopterMode = false;
+            isEnemyHelicopterMode = false;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the enemy tank on the grid.");
+        });
+
+        addEnemyHelicopterButton.setOnAction(event -> {
+            isHelicopterMode = false;
+            isEnemyTankMode = false;
+            isEnemyHelicopterMode = true;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the enemy helicopter on the grid.");
+        });
+
         addHelicopterButton.setOnAction(event -> {
             isHelicopterMode = true;
+            isEnemyTankMode = false;
+            isEnemyHelicopterMode = false;
             vehicleTypeChosen = true;
             messageLabel.setText("Place the helicopter on the grid.");
         });
+        
 
         resetButton.setOnAction(event -> {
             grid.getChildren().clear();
@@ -267,7 +297,7 @@ public class Main extends Application {
             setupGrid(grid, map, obstacleImage,airobstacleImage,waterImage, groundImage, isSettingStart);
         });
 
-        HBox hbox = new HBox(startButton, addCarButton, addHelicopterButton, resetButton);
+        HBox hbox = new HBox(startButton, addTankButton, addEnemyTankButton, addHelicopterButton,addEnemyHelicopterButton ,resetButton);
         VBox vbox = new VBox(messageLabel, hbox, grid);
         VBox.setVgrow(grid, Priority.ALWAYS);
 
