@@ -59,8 +59,9 @@ public class Main extends Application {
                     }
 
                     int[] currentPos = vehicle.getCurrentPosition();
+                    System.out.println("Vehicle " + vehicleIndex + " current position: [" + currentPos[1] + ", " + currentPos[0] + "]");
 
-                    Vehicle blockingVehicle = getVehicleAtPosition(point);
+                    Vehicle blockingVehicle = getVehicleAtPosition(point); //belki bu fonskiyonda sıkıntı olabilir
                     boolean isEnemy = blockingVehicle != null && (blockingVehicle instanceof EnemyTank || blockingVehicle instanceof EnemyHelicopter);
                     boolean isSameType = blockingVehicle != null && blockingVehicle.getType().equals(vehicle.getType());
 
@@ -70,7 +71,7 @@ public class Main extends Application {
 
                         List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly());
                         printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
-                        System.out.println("Collision detected, recalculating path.");
+                        System.out.println("Collision detected [" + point[1] + ", " + point[0] + "] , recalculating path for vehicle " + vehicleIndex + ".");
                         break;
                     }
 
@@ -80,7 +81,7 @@ public class Main extends Application {
 
                         List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly());
                         printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
-                        System.out.println("Collision detected, recalculating path.");
+                        System.out.println("Collision detected [" + point[1] + ", " + point[0] + "] , recalculating path for vehicle " + vehicleIndex + ".");
                         break;
                     }
                     
@@ -96,9 +97,18 @@ public class Main extends Application {
                         if (vehicleIndex == 0) {
                             pathRectangle.setFill(Color.rgb(250, 250, 0, 0.4));
                         } else if (vehicleIndex == 1) {
+                            pathRectangle.setFill(Color.rgb(0, 0, 250, 0.4));
+                        } else if (vehicleIndex == 2) {
+                            pathRectangle.setFill(Color.rgb(0, 250, 250, 0.4));
+                        }
+                        else if (vehicleIndex == 3) {
                             pathRectangle.setFill(Color.rgb(250, 0, 0, 0.4));
-                        } else {
-                            pathRectangle.setFill(Color.rgb(50, 50, 50, 0.4));
+                        }
+                        else if (vehicleIndex == 4) {
+                            pathRectangle.setFill(Color.rgb(100, 100, 100, 0.4));
+                        }
+                        else {
+                            pathRectangle.setFill(Color.rgb(200, 150, 100, 0.4));
                         }
                         pathRectangle.setMouseTransparent(true);
                         grid.add(pathRectangle, point[1], point[0]);
@@ -135,7 +145,7 @@ public class Main extends Application {
 
     private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage, Image waterImage, Image groundImage, AtomicBoolean isSettingStart) {
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 12; j++) {
+            for (int j = 0; j < 23; j++) {
                 if (map[i][j] == 1) {
                 ImageView obstacleImageView = new ImageView(obstacleImage);
                 obstacleImageView.setFitWidth(64);
@@ -247,7 +257,7 @@ public class Main extends Application {
                         destinations.get(currentVehicleIndex)[0] = y;
                         destinations.get(currentVehicleIndex)[1] = x;
 
-                        vehicles.get(currentVehicleIndex).rotateTowards(destinations.get(currentVehicleIndex)); // Rotate the vehicle towards the destination
+                        vehicles.get(currentVehicleIndex).rotateTowards(destinations.get(currentVehicleIndex)); // Rotate the vehicle towards the destination at first.
 
                         isSettingStart.set(true);
                         vehicleTypeChosen = false;
@@ -268,7 +278,7 @@ public class Main extends Application {
 
 @Override
 public void start(Stage stage) {
-    TrackGenerator generator = new TrackGenerator(12, 12);
+    TrackGenerator generator = new TrackGenerator(12, 23);
     generator.printTrack();
     int[][] map = generator.getTrack();
 
@@ -300,7 +310,7 @@ public void start(Stage stage) {
         }
         shortestPathRectangles.clear();  // Clear the list of path rectangles
 
-        boolean[][] occupiedCells = new boolean[12][12];  // Reset occupied cells
+        boolean[][] occupiedCells = new boolean[13][23];  // Reset occupied cells
 
         CountDownLatch startLatch = new CountDownLatch(1); // Latch to synchronize start
 
@@ -360,6 +370,8 @@ public void start(Stage stage) {
         starts.clear();
         destinations.clear();
         currentVehicleIndex = 0;
+        tankcount = 0;
+        helicoptercount = 0;
         vehicleTypeChosen = false;
         isSettingStart.set(true);
         messageLabel.setText("Choose a vehicle type:");
@@ -370,7 +382,7 @@ public void start(Stage stage) {
     VBox vbox = new VBox(messageLabel, hbox, grid);
     VBox.setVgrow(grid, Priority.ALWAYS);
 
-    Scene scene = new Scene(vbox, 766, 818);
+    Scene scene = new Scene(vbox, 1472, 818);
     stage.setScene(scene);
     stage.setTitle("OtonomTrackFinder");
     stage.show();

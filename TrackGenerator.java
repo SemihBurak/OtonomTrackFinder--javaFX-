@@ -25,7 +25,7 @@ public class TrackGenerator {
         int totalCells = rows * cols;
         int numObstructions = (int) (totalCells * 0.08); // 8% obstructions
         int airobstacles = (int) (totalCells * 0.05); // 5% airobstacles
-        int waterobstacles = (int) (totalCells * 0.025); // 5% waterobstacles
+        int waterobstacles = (int) (totalCells * 0.02); // 5% waterobstacles
     
         List<Integer> cells = new ArrayList<>(totalCells);
     

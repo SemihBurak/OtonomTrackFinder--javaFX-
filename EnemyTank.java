@@ -32,7 +32,7 @@ public class EnemyTank extends Vehicle {
 
     @Override
     public String getType() {
-        return "Tank";
+        return "EnemyTank";
     }
 
     @Override

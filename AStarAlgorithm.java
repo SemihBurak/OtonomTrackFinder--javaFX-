@@ -7,7 +7,7 @@ public class AStarAlgorithm {
 
     public static List<int[]> aStar(int[][] map, int startX, int startY, int destX, int destY, boolean[][] occupiedCells, boolean canFly) {
         PriorityQueue<Node> openList = new PriorityQueue<>();
-        boolean[][] closedList = new boolean[12][12];
+        boolean[][] closedList = new boolean[12][23];
 
         Node startNode = new Node(startX, startY, 0, Math.abs(destX - startX) + Math.abs(destY - startY), null);
         openList.add(startNode);
@@ -35,7 +35,7 @@ public class AStarAlgorithm {
             for (int[] direction : directions) {
                 int newX = current.x + direction[0];
                 int newY = current.y + direction[1];
-                if (newX >= 0 && newX < 12 && newY >= 0 && newY < 12 && (!occupiedCells[newX][newY]) && (map[newX][newY] != 3) && (canFly||map[newX][newY] != 1) && (canFly||map[newX][newY] != 4) && !closedList[newX][newY]) {
+                if (newX >= 0 && newX < 12 && newY >= 0 && newY < 23 && (!occupiedCells[newX][newY]) && (map[newX][newY] != 3) && (canFly||map[newX][newY] != 1) && (canFly||map[newX][newY] != 4) && !closedList[newX][newY]) {
                     double g = current.g;
                     if (direction[0] != 0 && direction[1] != 0) {
                         g += Math.sqrt(2); // Diagonal movement cost
