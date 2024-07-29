@@ -13,6 +13,7 @@ public class TrackGenerator {
     private int[][] track;
     private int rows;
     private int cols;
+    
 
     public TrackGenerator(int rows, int cols) {
         this.rows = rows;
@@ -26,6 +27,8 @@ public class TrackGenerator {
         int numObstructions = (int) (totalCells * 0.08); // 8% obstructions
         int airobstacles = (int) (totalCells * 0.05); // 5% airobstacles
         int waterobstacles = (int) (totalCells * 0.02); // 5% waterobstacles
+        int friendlytower = (int) (totalCells * 0.02); // 5% friendlytower
+        int enemytower = (int) (totalCells * 0.02); // 5% enemytower
     
         List<Integer> cells = new ArrayList<>(totalCells);
     
@@ -37,6 +40,14 @@ public class TrackGenerator {
         // Add 3s for special cells
         for (int i = 0; i < airobstacles; i++) {
             cells.add(3);
+        }
+
+        for (int i = 0; i < friendlytower; i++) {
+            cells.add(6);
+        }
+
+        for (int i = 0; i < enemytower; i++) {
+            cells.add(5);
         }
     
         // Add 0s for clear paths
@@ -98,6 +109,10 @@ private void spreadWater(int row, int col, int remaining) {
         final String ANSI_BLUE = "\u001B[34m";
         // ANSI escape code to reset to default text color
         final String ANSI_RESET = "\u001B[0m";
+        // ANSI escape code for pink text
+        final String ANSI_PINK = "\u001B[35m";
+        // ANSI escape code for yellow text
+        final String ANSI_YELLOW = "\u001B[33m";
     
         // Print column headers
         System.out.print("  ");
@@ -118,7 +133,15 @@ private void spreadWater(int row, int col, int remaining) {
                 else if (track[i][j] == 4) {
                     System.out.print(ANSI_BLUE + track[i][j] + ANSI_RESET + " ");
 
-                } else {
+                }else if (track[i][j] == 5) {
+                    System.out.print(ANSI_YELLOW + track[i][j] + ANSI_RESET + " ");
+                }
+                
+                else if (track[i][j] == 6) {
+                    System.out.print(ANSI_PINK + track[i][j] + ANSI_RESET + " ");
+                }
+                
+                else {
                     System.out.print(track[i][j] + " ");
                 }
             }

@@ -19,6 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
 public class Main extends Application {
 
     private List<Rectangle> shortestPathRectangles = new ArrayList<>();
@@ -33,6 +34,7 @@ public class Main extends Application {
     private boolean isEnemyTankMode = false;
     private boolean isEnemyHelicopterMode = false;
     private final Semaphore moveSemaphore = new Semaphore(20);
+
 
     private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex, boolean[][] occupiedCells, int[][] map, CountDownLatch startLatch) {
         if (path.isEmpty()) {
@@ -69,7 +71,7 @@ public class Main extends Application {
                         collisionDetected.set(true);
                         vehicle.setCurrentPosition(currentPos);
 
-                        List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly());
+                        List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly(),vehicle.getType());
                         printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
                         System.out.println("Collision detected [" + point[1] + ", " + point[0] + "] , recalculating path for vehicle " + vehicleIndex + ".");
                         break;
@@ -79,7 +81,7 @@ public class Main extends Application {
                         collisionDetected.set(true);
                         vehicle.setCurrentPosition(currentPos);
 
-                        List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly());
+                        List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly(),vehicle.getType());
                         printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
                         System.out.println("Collision detected [" + point[1] + ", " + point[0] + "] , recalculating path for vehicle " + vehicleIndex + ".");
                         break;
@@ -115,7 +117,7 @@ public class Main extends Application {
                         shortestPathRectangles.add(pathRectangle);
                     });
 
-                    Thread.sleep(400);  
+                    Thread.sleep(300);  
 
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -143,7 +145,7 @@ public class Main extends Application {
         return null;
     }
 
-    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage, Image waterImage, Image groundImage, AtomicBoolean isSettingStart) {
+    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage, Image waterImage, Image groundImage,Image FriendlyTower, Image EnemyTower, AtomicBoolean isSettingStart) {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 23; j++) {
                 if (map[i][j] == 1) {
@@ -161,7 +163,21 @@ public class Main extends Application {
                 waterImageView.setFitWidth(64);
                 waterImageView.setFitHeight(64);
                 grid.add(waterImageView, j, i);
-                } else {
+                } 
+                else if (map[i][j] == 5) {
+                ImageView FrindlyTowerImageView = new ImageView(FriendlyTower);
+                FrindlyTowerImageView.setFitWidth(64);
+                FrindlyTowerImageView.setFitHeight(64);
+                grid.add(FrindlyTowerImageView, j, i);
+                } 
+                else if (map[i][j] == 6) {
+                ImageView EnemyTowerImageView = new ImageView(EnemyTower);
+                EnemyTowerImageView.setFitWidth(64);
+                EnemyTowerImageView.setFitHeight(64);
+                grid.add(EnemyTowerImageView, j, i);
+
+                }
+                else {
                 ImageView groundImageView = new ImageView(groundImage);
                 groundImageView.setFitWidth(64);
                 groundImageView.setFitHeight(64);
@@ -300,8 +316,10 @@ public void start(Stage stage) {
     Image groundImage = new Image("file:Assets/ground.png");
     Image airobstacleImage = new Image("file:Assets/mountainnew.png");
     Image waterImage = new Image("file:Assets/water.gif");
+    Image FriendlyTower = new Image("file:Assets/friendlytower.png");
+    Image EnemyTower = new Image("file:Assets/enemytower.png");
 
-    setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage, isSettingStart);
+    setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage,FriendlyTower,EnemyTower,isSettingStart);
 
     startButton.setOnAction(event -> {
         // Clear existing path rectangles from the grid
@@ -322,7 +340,7 @@ public void start(Stage stage) {
             map[dest[0]][dest[1]] = 2;     // Mark destination point on map
 
            
-            List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly());
+            List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly(), vehicles.get(i).getType());
             vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]});
 
             // Print and animate the shortest path
@@ -375,7 +393,7 @@ public void start(Stage stage) {
         vehicleTypeChosen = false;
         isSettingStart.set(true);
         messageLabel.setText("Choose a vehicle type:");
-        setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage, isSettingStart);
+        setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage, FriendlyTower,EnemyTower,isSettingStart);
     });
 
     HBox hbox = new HBox(startButton, addTankButton, addEnemyTankButton, addHelicopterButton, addEnemyHelicopterButton, resetButton);
