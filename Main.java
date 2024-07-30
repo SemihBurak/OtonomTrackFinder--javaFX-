@@ -36,113 +36,88 @@ public class Main extends Application {
     private final Semaphore moveSemaphore = new Semaphore(20);
 
 
-    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex, boolean[][] occupiedCells, int[][] map, CountDownLatch startLatch) {
+    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex, boolean[][] occupiedCells, int[][]map, CountDownLatch startLatch) {
         if (path.isEmpty()) {
             System.out.println("\nNo paths found.");
             return;
         }
-
+    
         AtomicBoolean collisionDetected = new AtomicBoolean(false);
-
+    
         new Thread(() -> {
             try {
-                startLatch.await(); 
+                startLatch.await();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-
+    
             for (int i = 1; i < path.size(); i++) {
                 int[] point = path.get(i);
                 try {
-                    moveSemaphore.acquire();  
-
+                    moveSemaphore.acquire();
+    
                     if (collisionDetected.get()) {
                         break;
                     }
-
+    
                     int[] currentPos = vehicle.getCurrentPosition();
                     System.out.println("Vehicle " + vehicleIndex + " current position: [" + currentPos[1] + ", " + currentPos[0] + "]");
-
-                    Vehicle blockingVehicle = getVehicleAtPosition(point); //belki bu fonskiyonda sıkıntı olabilir
-                    boolean isEnemy = blockingVehicle != null && (blockingVehicle instanceof EnemyTank || blockingVehicle instanceof EnemyHelicopter);
-                    boolean isSameType = blockingVehicle != null && blockingVehicle.getType().equals(vehicle.getType());
-
-                    if (isSameType) {
-                        collisionDetected.set(true);
-                        vehicle.setCurrentPosition(currentPos);
-
-                        List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly(),vehicle.getType());
-                        printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
-                        System.out.println("Collision detected [" + point[1] + ", " + point[0] + "] , recalculating path for vehicle " + vehicleIndex + ".");
-                        break;
+    
+                    synchronized (occupiedCells) {
+                        // Check if the target cell is occupied before moving
+                        if (occupiedCells[point[0]][point[1]]) {
+                            collisionDetected.set(true);
+                            vehicle.setCurrentPosition(currentPos);
+    
+                            // Recalculate path if the target cell is occupied
+                            List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly(), vehicle.getType());
+                            printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
+                            System.out.println("Collision detected at [" + point[1] + ", " + point[0] + "], recalculating path for vehicle " + vehicleIndex + ".");
+                            break;
+                        }
+    
+                        // Mark cells as occupied
+                        occupiedCells[currentPos[0]][currentPos[1]] = false;
+                        occupiedCells[point[0]][point[1]] = true;
                     }
-
-                    if ((vehicle instanceof Tank || vehicle instanceof Helicopter) && isEnemy) {
-                        collisionDetected.set(true);
-                        vehicle.setCurrentPosition(currentPos);
-
-                        List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly(),vehicle.getType());
-                        printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
-                        System.out.println("Collision detected [" + point[1] + ", " + point[0] + "] , recalculating path for vehicle " + vehicleIndex + ".");
-                        break;
-                    }
-                    
+    
+                    // Move vehicle to new position
                     Platform.runLater(() -> vehicle.move(grid, point));
                     vehicle.setCurrentPosition(point);
-                    occupiedCells[currentPos[0]][currentPos[1]] = false;
-                    occupiedCells[point[0]][point[1]] = true;
-
+    
                     Platform.runLater(() -> {
                         Rectangle pathRectangle = new Rectangle();
                         pathRectangle.setWidth(63);
                         pathRectangle.setHeight(63);
-                        if (vehicleIndex == 0) {
-                            pathRectangle.setFill(Color.rgb(250, 250, 0, 0.4));
-                        } else if (vehicleIndex == 1) {
-                            pathRectangle.setFill(Color.rgb(0, 0, 250, 0.4));
-                        } else if (vehicleIndex == 2) {
-                            pathRectangle.setFill(Color.rgb(0, 250, 250, 0.4));
-                        }
-                        else if (vehicleIndex == 3) {
-                            pathRectangle.setFill(Color.rgb(250, 0, 0, 0.4));
-                        }
-                        else if (vehicleIndex == 4) {
-                            pathRectangle.setFill(Color.rgb(100, 100, 100, 0.4));
-                        }
-                        else {
-                            pathRectangle.setFill(Color.rgb(200, 150, 100, 0.4));
+                        switch (vehicleIndex) {
+                            case 0 -> pathRectangle.setFill(Color.rgb(250, 250, 0, 0.4));
+                            case 1 -> pathRectangle.setFill(Color.rgb(0, 0, 250, 0.4));
+                            case 2 -> pathRectangle.setFill(Color.rgb(0, 250, 250, 0.4));
+                            case 3 -> pathRectangle.setFill(Color.rgb(250, 0, 0, 0.4));
+                            case 4 -> pathRectangle.setFill(Color.rgb(100, 100, 100, 0.4));
+                            default -> pathRectangle.setFill(Color.rgb(200, 150, 100, 0.4));
                         }
                         pathRectangle.setMouseTransparent(true);
                         grid.add(pathRectangle, point[1], point[0]);
                         shortestPathRectangles.add(pathRectangle);
                     });
-
-                    Thread.sleep(300);  
-
+    
+                    Thread.sleep(250);
+    
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } finally {
-                    moveSemaphore.release();  
+                    moveSemaphore.release();
                 }
             }
-
+    
             System.out.println("\nShortest path for vehicle " + vehicleIndex + ":");
             for (int[] point : path) {
                 System.out.print("[" + point[1] + ", " + point[0] + "] ");
             }
             System.out.println(" Time: " + (path.size()) + " seconds");
-
+    
         }).start();
-    }
-
-    private Vehicle getVehicleAtPosition(int[] position) {
-        for (Vehicle vehicle : vehicles) {
-            int[] vehiclePosition = vehicle.getCurrentPosition();
-            if (vehiclePosition[0] == position[0] && vehiclePosition[1] == position[1]) {
-                return vehicle;
-            }
-        }
-        return null;
     }
 
     private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage, Image waterImage, Image groundImage,Image FriendlyTower, Image EnemyTower, AtomicBoolean isSettingStart) {
@@ -322,32 +297,32 @@ public void start(Stage stage) {
     setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage,FriendlyTower,EnemyTower,isSettingStart);
 
     startButton.setOnAction(event -> {
-        // Clear existing path rectangles from the grid
+        
         for (Rectangle rect : shortestPathRectangles) {
             grid.getChildren().remove(rect);
         }
-        shortestPathRectangles.clear();  // Clear the list of path rectangles
+        shortestPathRectangles.clear();  
 
-        boolean[][] occupiedCells = new boolean[13][23];  // Reset occupied cells
+        boolean[][] occupiedCells = new boolean[13][23];  
 
-        CountDownLatch startLatch = new CountDownLatch(1); // Latch to synchronize start
+        CountDownLatch startLatch = new CountDownLatch(1);
 
         for (int i = 0; i < vehicles.size(); i++) {
             int[] start = starts.get(i);
             int[] dest = destinations.get(i);
 
-            map[start[0]][start[1]] = -1;  // Mark start point on map
-            map[dest[0]][dest[1]] = 2;     // Mark destination point on map
+            map[start[0]][start[1]] = -1; 
+            map[dest[0]][dest[1]] = 2;     
 
            
             List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly(), vehicles.get(i).getType());
             vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]});
 
-            // Print and animate the shortest path
+            
             printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map, startLatch);
         }
 
-        startLatch.countDown();  // Release all vehicles to start moving
+        startLatch.countDown();  
     });
 
     addTankButton.setOnAction(event -> {

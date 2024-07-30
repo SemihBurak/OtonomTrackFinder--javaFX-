@@ -36,6 +36,11 @@ public class EnemyHelicopter extends Vehicle {
     }
 
     @Override
+    public boolean isEnemy(){
+        return true;
+    }
+
+    @Override
     public boolean canFly() {
         return true;
     }

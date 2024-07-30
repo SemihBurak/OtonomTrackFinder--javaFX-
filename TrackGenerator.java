@@ -24,8 +24,8 @@ public class TrackGenerator {
 
     private void generateTrack() {
         int totalCells = rows * cols;
-        int numObstructions = (int) (totalCells * 0.08); // 8% obstructions
-        int airobstacles = (int) (totalCells * 0.05); // 5% airobstacles
+        int numObstructions = (int) (totalCells * 0.04); // 8% obstructions
+        int airobstacles = (int) (totalCells * 0.03); // 5% airobstacles
         int waterobstacles = (int) (totalCells * 0.02); // 5% waterobstacles
         int friendlytower = (int) (totalCells * 0.02); // 5% friendlytower
         int enemytower = (int) (totalCells * 0.02); // 5% enemytower

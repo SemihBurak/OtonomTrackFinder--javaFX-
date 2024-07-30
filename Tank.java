@@ -36,6 +36,11 @@ public class Tank extends Vehicle {
     }
 
     @Override
+    public boolean isEnemy(){
+        return false;
+    }
+
+    @Override
     public boolean canFly() {
         return false;
     }

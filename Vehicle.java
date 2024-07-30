@@ -50,6 +50,8 @@ public abstract class Vehicle {
 
     public abstract String getType();
 
+    public abstract boolean isEnemy();
+
     public abstract void move(GridPane grid, int[] position);
 
     public abstract boolean canFly();
