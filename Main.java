@@ -34,7 +34,8 @@ public class Main extends Application {
     private boolean isEnemyHelicopterMode = false;
     private final Semaphore moveSemaphore = new Semaphore(20);
 
-    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex, boolean[][] occupiedCells, int[][] map, CountDownLatch startLatch) {
+    private void printShortestPath(List<int[]> path, GridPane grid, Vehicle vehicle, int vehicleIndex,
+            boolean[][] occupiedCells, int[][] map, CountDownLatch startLatch) {
         if (path.isEmpty()) {
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -46,46 +47,50 @@ public class Main extends Application {
             System.out.println("\nNo paths found.");
             return;
         }
-    
+
         AtomicBoolean collisionDetected = new AtomicBoolean(false);
-    
+
         new Thread(() -> {
             try {
                 startLatch.await();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-    
+
             for (int i = 1; i < path.size(); i++) {
                 int[] point = path.get(i);
                 try {
                     moveSemaphore.acquire();
-    
+
                     if (collisionDetected.get()) {
                         break;
                     }
-    
+
                     int[] currentPos = vehicle.getCurrentPosition();
-                    System.out.println("Vehicle " + vehicleIndex + " current position: [" + currentPos[1] + ", " + currentPos[0] + "]");
-    
+                    System.out.println("Vehicle " + vehicleIndex + " current position: [" + currentPos[1] + ", "
+                            + currentPos[0] + "]");
+
                     synchronized (occupiedCells) {
                         if (occupiedCells[point[0]][point[1]]) {
                             collisionDetected.set(true);
                             vehicle.setCurrentPosition(currentPos);
-    
-                            List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1], destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells, vehicle.canFly(), vehicle.getType());
+
+                            List<int[]> newPath = AStarAlgorithm.aStar(map, currentPos[0], currentPos[1],
+                                    destinations.get(vehicleIndex)[0], destinations.get(vehicleIndex)[1], occupiedCells,
+                                    vehicle.canFly(), vehicle.getType());
                             printShortestPath(newPath, grid, vehicle, vehicleIndex, occupiedCells, map, startLatch);
-                            System.out.println("Collision detected at [" + point[1] + ", " + point[0] + "], recalculating path for vehicle " + vehicleIndex + ".");
+                            System.out.println("Collision detected at [" + point[1] + ", " + point[0]
+                                    + "], recalculating path for vehicle " + vehicleIndex + ".");
                             break;
                         }
-    
+
                         occupiedCells[currentPos[0]][currentPos[1]] = false;
                         occupiedCells[point[0]][point[1]] = true;
                     }
-    
+
                     Platform.runLater(() -> vehicle.move(grid, point));
                     vehicle.setCurrentPosition(point);
-    
+
                     Platform.runLater(() -> {
                         Rectangle pathRectangle = new Rectangle();
                         pathRectangle.setWidth(63);
@@ -102,27 +107,27 @@ public class Main extends Application {
                         grid.add(pathRectangle, point[1], point[0]);
                         shortestPathRectangles.add(pathRectangle);
                     });
-    
+
                     Thread.sleep(250);
-    
+
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } finally {
                     moveSemaphore.release();
                 }
             }
-    
+
             System.out.println("\nShortest path for vehicle " + vehicleIndex + ":");
             for (int[] point : path) {
                 System.out.print("[" + point[1] + ", " + point[0] + "] ");
             }
             System.out.println(" Time: " + (path.size()) + " seconds");
-    
+
         }).start();
     }
-    
 
-    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage, Image waterImage, Image groundImage, Image FriendlyTower, Image EnemyTower, AtomicBoolean isSettingStart) {
+    private void setupGrid(GridPane grid, int[][] map, Image obstacleImage, Image airobstacleImage, Image waterImage,
+            Image groundImage, Image FriendlyTower, Image EnemyTower, AtomicBoolean isSettingStart) {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 23; j++) {
                 if (map[i][j] == 1) {
@@ -218,7 +223,7 @@ public class Main extends Application {
                             }
 
                             vehicles.add(vehicle);
-                            starts.add(new int[]{y, x});
+                            starts.add(new int[] { y, x });
                             destinations.add(new int[2]);
 
                             Rectangle startRectangle = new Rectangle();
@@ -232,7 +237,7 @@ public class Main extends Application {
                             vehicleImageView.setFitHeight(63);
                             grid.add(vehicleImageView, x, y);
 
-                            vehicle.setCurrentPosition(new int[]{y, x});
+                            vehicle.setCurrentPosition(new int[] { y, x });
 
                             currentVehicleIndex = vehicles.size() - 1;
                             isSettingStart.set(false);
@@ -267,134 +272,139 @@ public class Main extends Application {
     }
 
     @Override
-public void start(Stage stage) {
-    TrackGenerator generator = new TrackGenerator(12, 23);
-    generator.printTrack();
-    int[][] map = generator.getTrack();
+    public void start(Stage stage) {
+        TrackGenerator generator = new TrackGenerator(12, 23);
+        generator.printTrack();
+        int[][] map = generator.getTrack();
 
-    Button startButton = new Button("Start");
-    Button addTankButton = new Button("Add Tank");
-    Button addEnemyTankButton = new Button("Add Enemy Tank");
-    Button addEnemyHelicopterButton = new Button("Add Enemy Helicopter");
-    Button addHelicopterButton = new Button("Add Helicopter");
-    Button resetButton = new Button("Reset");
-    Button newMapButton = new Button("New Map");
+        Button startButton = new Button("Start");
+        Button addTankButton = new Button("Add Tank");
+        Button addEnemyTankButton = new Button("Add Enemy Tank");
+        Button addEnemyHelicopterButton = new Button("Add Enemy Helicopter");
+        Button addHelicopterButton = new Button("Add Helicopter");
+        Button resetButton = new Button("Reset");
+        Button newMapButton = new Button("New Map");
 
-    GridPane grid = new GridPane();
-    grid.setGridLinesVisible(true);
+        GridPane grid = new GridPane();
+        grid.setGridLinesVisible(true);
 
-    Label messageLabel = new Label("Choose a vehicle type:");
+        Label messageLabel = new Label("Choose a vehicle type:");
 
-    AtomicBoolean isSettingStart = new AtomicBoolean(true);
+        AtomicBoolean isSettingStart = new AtomicBoolean(true);
 
-    Image obstacleImage = new Image("file:Assets/obstacle.jpeg");
-    Image groundImage = new Image("file:Assets/ground.png");
-    Image airobstacleImage = new Image("file:Assets/mountainnew.png");
-    Image waterImage = new Image("file:Assets/water.gif");
-    Image FriendlyTower = new Image("file:Assets/friendlytower.png");
-    Image EnemyTower = new Image("file:Assets/enemytower.png");
+        Image obstacleImage = new Image("file:Assets/obstacle.jpeg");
+        Image groundImage = new Image("file:Assets/ground.png");
+        Image airobstacleImage = new Image("file:Assets/mountainnew.png");
+        Image waterImage = new Image("file:Assets/water.gif");
+        Image FriendlyTower = new Image("file:Assets/friendlytower.png");
+        Image EnemyTower = new Image("file:Assets/enemytower.png");
 
-    setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage, FriendlyTower, EnemyTower, isSettingStart);
+        setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage, FriendlyTower, EnemyTower,
+                isSettingStart);
 
-    startButton.setOnAction(event -> {
-        for (Rectangle rect : shortestPathRectangles) {
-            grid.getChildren().remove(rect);
-        }
-        shortestPathRectangles.clear();
+        startButton.setOnAction(event -> {
+            for (Rectangle rect : shortestPathRectangles) {
+                grid.getChildren().remove(rect);
+            }
+            shortestPathRectangles.clear();
 
-        boolean[][] occupiedCells = new boolean[13][23];
-        CountDownLatch startLatch = new CountDownLatch(1);
+            boolean[][] occupiedCells = new boolean[13][23];
+            CountDownLatch startLatch = new CountDownLatch(1);
 
-        for (int i = 0; i < vehicles.size(); i++) {
-            int[] start = starts.get(i);
-            int[] dest = destinations.get(i);
+            for (int i = 0; i < vehicles.size(); i++) {
+                int[] start = starts.get(i);
+                int[] dest = destinations.get(i);
 
-            map[start[0]][start[1]] = -1;
-            map[dest[0]][dest[1]] = 2;
+                map[start[0]][start[1]] = -1;
+                map[dest[0]][dest[1]] = 2;
 
-            List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells, vehicles.get(i).canFly(), vehicles.get(i).getType());
-            vehicles.get(i).setCurrentPosition(new int[]{start[0], start[1]});
+                List<int[]> path = AStarAlgorithm.aStar(map, start[0], start[1], dest[0], dest[1], occupiedCells,
+                        vehicles.get(i).canFly(), vehicles.get(i).getType());
+                vehicles.get(i).setCurrentPosition(new int[] { start[0], start[1] });
 
-            printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map, startLatch);
-        }
+                printShortestPath(path, grid, vehicles.get(i), i, occupiedCells, map, startLatch);
+            }
 
-        startLatch.countDown();
-    });
+            startLatch.countDown();
+        });
 
-    addTankButton.setOnAction(event -> {
-        isHelicopterMode = false;
-        isEnemyHelicopterMode = false;
-        isEnemyTankMode = false;
-        vehicleTypeChosen = true;
-        messageLabel.setText("Place the tank on the grid.");
-    });
+        addTankButton.setOnAction(event -> {
+            isHelicopterMode = false;
+            isEnemyHelicopterMode = false;
+            isEnemyTankMode = false;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the tank on the grid.");
+        });
 
-    addEnemyTankButton.setOnAction(event -> {
-        isEnemyTankMode = true;
-        isHelicopterMode = false;
-        isEnemyHelicopterMode = false;
-        vehicleTypeChosen = true;
-        messageLabel.setText("Place the enemy tank on the grid.");
-    });
+        addEnemyTankButton.setOnAction(event -> {
+            isEnemyTankMode = true;
+            isHelicopterMode = false;
+            isEnemyHelicopterMode = false;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the enemy tank on the grid.");
+        });
 
-    addEnemyHelicopterButton.setOnAction(event -> {
-        isHelicopterMode = false;
-        isEnemyTankMode = false;
-        isEnemyHelicopterMode = true;
-        vehicleTypeChosen = true;
-        messageLabel.setText("Place the enemy helicopter on the grid.");
-    });
+        addEnemyHelicopterButton.setOnAction(event -> {
+            isHelicopterMode = false;
+            isEnemyTankMode = false;
+            isEnemyHelicopterMode = true;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the enemy helicopter on the grid.");
+        });
 
-    addHelicopterButton.setOnAction(event -> {
-        isHelicopterMode = true;
-        isEnemyTankMode = false;
-        isEnemyHelicopterMode = false;
-        vehicleTypeChosen = true;
-        messageLabel.setText("Place the helicopter on the grid.");
-    });
+        addHelicopterButton.setOnAction(event -> {
+            isHelicopterMode = true;
+            isEnemyTankMode = false;
+            isEnemyHelicopterMode = false;
+            vehicleTypeChosen = true;
+            messageLabel.setText("Place the helicopter on the grid.");
+        });
 
-    resetButton.setOnAction(event -> {
-        grid.getChildren().clear();
-        vehicles.clear();
-        starts.clear();
-        destinations.clear();
-        currentVehicleIndex = 0;
-        tankcount = 0;
-        helicoptercount = 0;
-        vehicleTypeChosen = false;
-        isSettingStart.set(true);
-        messageLabel.setText("Choose a vehicle type:");
-        setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage, FriendlyTower, EnemyTower, isSettingStart);
-    });
+        resetButton.setOnAction(event -> {
+            grid.getChildren().clear();
+            vehicles.clear();
+            starts.clear();
+            destinations.clear();
+            currentVehicleIndex = 0;
+            tankcount = 0;
+            helicoptercount = 0;
+            vehicleTypeChosen = false;
+            isSettingStart.set(true);
+            messageLabel.setText("Choose a vehicle type:");
+            setupGrid(grid, map, obstacleImage, airobstacleImage, waterImage, groundImage, FriendlyTower, EnemyTower,
+                    isSettingStart);
+        });
 
-    newMapButton.setOnAction(event -> {
-        grid.getChildren().clear();
-        vehicles.clear();
-        starts.clear();
-        destinations.clear();
-        currentVehicleIndex = 0;
-        tankcount = 0;
-        helicoptercount = 0;
-        vehicleTypeChosen = false;
-        isSettingStart.set(true);
+        newMapButton.setOnAction(event -> {
+            grid.getChildren().clear();
+            vehicles.clear();
+            starts.clear();
+            destinations.clear();
+            currentVehicleIndex = 0;
+            tankcount = 0;
+            helicoptercount = 0;
+            vehicleTypeChosen = false;
+            isSettingStart.set(true);
 
-        generator.generateNewTrack();
-        int[][] newMap = generator.getTrack();
-        setupGrid(grid, newMap, obstacleImage, airobstacleImage, waterImage, groundImage, FriendlyTower, EnemyTower, isSettingStart);
-    });
+            generator.generateNewTrack();
+            int[][] newMap = generator.getTrack();
+            setupGrid(grid, newMap, obstacleImage, airobstacleImage, waterImage, groundImage, FriendlyTower, EnemyTower,
+                    isSettingStart);
+        });
 
-    HBox hbox = new HBox(startButton, addTankButton, addEnemyTankButton, addHelicopterButton, addEnemyHelicopterButton, resetButton, newMapButton);
-    VBox vbox = new VBox(messageLabel, hbox, grid);
-    VBox.setVgrow(grid, Priority.ALWAYS);
+        HBox hbox = new HBox(startButton, addTankButton, addEnemyTankButton, addHelicopterButton,
+                addEnemyHelicopterButton, resetButton, newMapButton);
+        VBox vbox = new VBox(messageLabel, hbox, grid);
+        VBox.setVgrow(grid, Priority.ALWAYS);
 
-    Scene scene = new Scene(vbox, 1472, 818);
-    stage.setScene(scene);
-    stage.setTitle("OtonomTrackFinder");
-    stage.show();
-}
+        Scene scene = new Scene(vbox, 1472, 818);
+        stage.setScene(scene);
+        stage.setTitle("OtonomTrackFinder");
+        stage.show();
+    }
 
-public static void main(String[] args) {
-    launch(args);
-}
+    public static void main(String[] args) {
+        launch(args);
+    }
 
 }
