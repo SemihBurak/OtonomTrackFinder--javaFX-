@@ -42,7 +42,8 @@ public class TrackGenerator {
             cells.add(5);
         }
 
-        for (int i = numObstructions + airobstacles + friendlytower + enemytower; i < totalCells - waterobstacles; i++) {
+        for (int i = numObstructions + airobstacles + friendlytower + enemytower; i < totalCells
+                - waterobstacles; i++) {
             cells.add(0);
         }
 
